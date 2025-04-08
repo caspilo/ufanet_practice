@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface TaskRepository extends JpaRepository<ScheduledTask, Long> {
-
     @Query(value = "select * from scheduled_tasks where id = :id", nativeQuery = true)
-    @Override
     Optional<ScheduledTask> findById(Long id);
 }

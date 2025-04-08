@@ -7,7 +7,6 @@ import org.example.entity.enums.TASK_TYPE;
 
 import javax.persistence.*;
 import java.sql.Time;
-import java.util.Date;
 
 @Data
 @Entity
