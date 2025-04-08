@@ -1,12 +1,15 @@
 package org.example.service;
 
-import org.example.repository.TaskRepository;
+import org.example.entity.ScheduledTask;
+import org.example.entity.enums.TASK_STATUS;
 
-public class TaskService {
+public interface TaskService {
 
-    private final TaskRepository taskRepository;
+    ScheduledTask getTask(long id) throws Exception;
 
-    public TaskService(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
-    }
+    void cancelTask(long id) throws Exception;
+
+    ScheduledTask changeTaskStatus (ScheduledTask scheduledTask, TASK_STATUS taskStatus) throws Exception;
+
+    ScheduledTask createTask (ScheduledTask scheduledTask) throws Exception;
 }

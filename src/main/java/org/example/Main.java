@@ -1,8 +1,12 @@
 package org.example;
 
-public class Main {
-    public static void main(String[] args) {
+import org.example.entity.ScheduledTask;
+import org.example.service.TaskService;
 
-        System.out.println("Hello world!");
+public class Main {
+    public static TaskService taskService;
+    public static void main(String[] args) throws Exception {
+        ScheduledTask scheduledTask = new ScheduledTask();
+        taskService.createTask(scheduledTask);
     }
 }
