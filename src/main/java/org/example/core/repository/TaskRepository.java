@@ -1,6 +1,6 @@
-package org.example.repository;
+package org.example.core.repository;
 
-import org.example.entity.ScheduledTask;
+import org.example.core.entity.ScheduledTask;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

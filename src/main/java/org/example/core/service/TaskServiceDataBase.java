@@ -1,8 +1,8 @@
-package org.example.service;
+package org.example.core.service;
 
-import org.example.entity.ScheduledTask;
-import org.example.entity.enums.TASK_STATUS;
-import org.example.repository.TaskRepository;
+import org.example.core.entity.ScheduledTask;
+import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.repository.TaskRepository;
 
 import java.util.Optional;
 
