@@ -1016,7 +1016,7 @@ sys|schema||mysql.sys|localhost|TRIGGER|G</Grants>
     </schema>
     <schema id="293" parent="1" name="ufanet_tasks">
       <Current>1</Current>
-      <LastIntrospectionLocalTimestamp>2025-04-08.06:14:00</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2025-04-08.07:07:57</LastIntrospectionLocalTimestamp>
       <CollationName>utf8mb4_0900_ai_ci</CollationName>
     </schema>
     <user id="294" parent="1" name="mysql.infoschema">

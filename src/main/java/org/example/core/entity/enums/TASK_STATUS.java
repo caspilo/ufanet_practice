@@ -1,7 +1,8 @@
-package org.example.entity.enums;
+package org.example.core.entity.enums;
 
 public enum TASK_STATUS {
     PENDING,
+    READY,
     PROCESSING,
     FAILED,
     COMPLETED,

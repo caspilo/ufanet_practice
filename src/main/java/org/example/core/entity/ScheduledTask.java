@@ -1,12 +1,11 @@
-package org.example.entity;
+package org.example.core.entity;
 
 
 import lombok.Data;
-import org.example.entity.enums.TASK_STATUS;
-import org.example.entity.enums.TASK_TYPE;
+import org.example.core.entity.enums.TASK_STATUS;
 
 import javax.persistence.*;
-import java.sql.Time;
+import java.sql.Timestamp;
 
 @Data
 @Entity
@@ -18,18 +17,18 @@ public class ScheduledTask {
     private Long id;
 
     @Column(name = "type", nullable = false)
-    private TASK_TYPE type;
+    private String type;
 
     @Column(name = "status", nullable = false)
     private TASK_STATUS status = TASK_STATUS.NONE;
 
     @Column(name = "execution_time", nullable = false)
-    private Time executionTime;
+    private Timestamp executionTime;
 
     @Column(name="retry_count")
     private int retryCount = 0;
 
-    public ScheduledTask(Long id, TASK_TYPE type, Time executionTime) {
+    public ScheduledTask(Long id, String type, Timestamp executionTime) {
         this.id = id;
         this.type = type;
         this.executionTime = executionTime;
@@ -47,11 +46,11 @@ public class ScheduledTask {
         this.id = id;
     }
 
-    public TASK_TYPE getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(TASK_TYPE type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -63,11 +62,11 @@ public class ScheduledTask {
         this.status = status;
     }
 
-    public Time getExecutionTime() {
+    public Timestamp getExecutionTime() {
         return executionTime;
     }
 
-    public void setExecutionTime(Time executionTime) {
+    public void setExecutionTime(Timestamp executionTime) {
         this.executionTime = executionTime;
     }
 

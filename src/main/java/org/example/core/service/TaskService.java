@@ -1,7 +1,7 @@
-package org.example.service;
+package org.example.core.service;
 
-import org.example.entity.ScheduledTask;
-import org.example.entity.enums.TASK_STATUS;
+import org.example.core.entity.ScheduledTask;
+import org.example.core.entity.enums.TASK_STATUS;
 
 public interface TaskService {
 
