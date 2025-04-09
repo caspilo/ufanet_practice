@@ -4,6 +4,8 @@ import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 import org.example.core.repository.TaskRepository;
 
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 public class TaskServiceDataBase implements TaskService {
@@ -28,13 +30,28 @@ public class TaskServiceDataBase implements TaskService {
     }
 
     @Override
-    public ScheduledTask changeTaskStatus(ScheduledTask scheduledTask, TASK_STATUS taskStatus) throws Exception {
-        scheduledTask.setStatus(taskStatus);
-        return taskRepository.saveAndFlush(scheduledTask);
+    public ScheduledTask changeTaskStatus(Long id, TASK_STATUS taskStatus) throws Exception {
+
+        Optional <ScheduledTask> scheduledTask = taskRepository.findById(id);
+        if(scheduledTask.isEmpty()){
+            throw new RuntimeException("");
+        }
+        scheduledTask.get().setStatus(taskStatus);
+        return taskRepository.saveAndFlush(scheduledTask.get());
     }
 
     @Override
-    public ScheduledTask createTask(ScheduledTask scheduledTask) throws Exception {
-        return changeTaskStatus(scheduledTask, TASK_STATUS.PENDING);
+    public ScheduledTask createTask(Long id, String type, Timestamp executionTime) throws Exception {
+        taskRepository.saveAndFlush(new ScheduledTask(id,type,executionTime));
+        return changeTaskStatus(id, TASK_STATUS.PENDING);
+    }
+
+    @Override
+    public List <ScheduledTask> getPendingTasksByType(String type){
+        Optional<List<ScheduledTask>> scheduledTasks = taskRepository.getPendingTasksForType(type);
+        if(scheduledTasks.isEmpty()){
+            throw new RuntimeException("");
+        }
+        return scheduledTasks.get();
     }
 }
