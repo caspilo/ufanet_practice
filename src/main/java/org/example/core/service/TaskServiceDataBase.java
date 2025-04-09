@@ -17,41 +17,51 @@ public class TaskServiceDataBase implements TaskService {
 
     @Override
     public ScheduledTask getTask(long id) throws Exception {
-        return taskRepository.findById(id).orElse(new ScheduledTask());
+        return null;
     }
 
     @Override
     public void cancelTask(long id) throws Exception {
-        Optional <ScheduledTask> scheduledTask = taskRepository.findById(id);
-        if(scheduledTask.isEmpty()){
-            throw new RuntimeException("");
-        }
-        scheduledTask.get().setStatus(TASK_STATUS.CANCELED);
+
     }
 
     @Override
     public ScheduledTask changeTaskStatus(Long id, TASK_STATUS taskStatus) throws Exception {
-
-        Optional <ScheduledTask> scheduledTask = taskRepository.findById(id);
-        if(scheduledTask.isEmpty()){
-            throw new RuntimeException("");
-        }
-        scheduledTask.get().setStatus(taskStatus);
-        return taskRepository.saveAndFlush(scheduledTask.get());
+        return null;
     }
 
     @Override
     public ScheduledTask createTask(Long id, String type, Timestamp executionTime) throws Exception {
-        taskRepository.saveAndFlush(new ScheduledTask(id,type,executionTime));
-        return changeTaskStatus(id, TASK_STATUS.PENDING);
+        return null;
     }
 
     @Override
-    public List <ScheduledTask> getPendingTasksByType(String type){
-        Optional<List<ScheduledTask>> scheduledTasks = taskRepository.getPendingTasksForType(type);
-        if(scheduledTasks.isEmpty()){
-            throw new RuntimeException("");
-        }
-        return scheduledTasks.get();
+    public List<ScheduledTask> getPendingTasksByType(String type) {
+        return List.of();
     }
+
+//    @Override
+//    public ScheduledTask getTask(long id) throws Exception {
+//        return taskRepository.findById(id).orElse(new ScheduledTask());
+//    }
+//
+//    @Override
+//    public void cancelTask(long id) throws Exception {
+//        Optional <ScheduledTask> scheduledTask = taskRepository.findById(id);
+//        if(scheduledTask.isEmpty()){
+//            throw new RuntimeException("");
+//        }
+//        scheduledTask.get().setStatus(TASK_STATUS.CANCELED);
+//    }
+//
+//    @Override
+//    public ScheduledTask changeTaskStatus(ScheduledTask scheduledTask, TASK_STATUS taskStatus) throws Exception {
+//        scheduledTask.setStatus(taskStatus);
+//        return taskRepository.saveAndFlush(scheduledTask);
+//    }
+//
+//    @Override
+//    public ScheduledTask createTask(ScheduledTask scheduledTask) throws Exception {
+//        return changeTaskStatus(scheduledTask, TASK_STATUS.PENDING);
+//    }
 }

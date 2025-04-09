@@ -2,28 +2,37 @@ package org.example.worker;
 
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.Map;
 
 public class TaskWorker implements Runnable {
-    private final String type;
-    private final Map<String, String> stringMap;
+    private final String category;
+    private final int threadCount;
 
-    public TaskWorker(String type, Map<String, String> stringMap) {
-        this.type = type;
-        this.stringMap = stringMap;
+    public TaskWorker(String category, int threadCount) {
+        this.category = category;
+        this.threadCount = threadCount;
     }
 
-    @Override
-    public void run() {
-        System.out.println(getClass().getCanonicalName());
+    public void executeTask(String task, Map<String, String> params) {
         try {
-            Object o = Class.forName(stringMap.get(type)).newInstance();
-            o.getClass().getMethod("execute").invoke(o);
+            Object o = Class.forName(task).newInstance();
+            o.getClass().getMethod("execute", Map.class).invoke(o, params);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) ");
+//        try {
+//            Object o = Class.forName(stringMap.get(category)).newInstance();
+//            o.getClass().getMethod("execute", Map.class).invoke(o, stringMap);
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException |
+//                 InvocationTargetException e) {
+//            throw new RuntimeException(e);
+//        }
 
 
 //        while (!Thread.currentThread().isInterrupted()){
