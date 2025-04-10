@@ -43,7 +43,7 @@ public class Main {
         // 6. Вызываем какой-то МЕТОД , в который передаем TestClass
 
 
-        TaskWorker worker = new TaskWorker("DoSomethingNew", 1);
+        TaskWorker worker = new TaskWorker("DoSomething", 1);
         worker.executeTask(DoSomething.class.getCanonicalName(), params);
 
     }

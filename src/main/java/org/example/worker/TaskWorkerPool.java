@@ -22,7 +22,7 @@ public class TaskWorkerPool {
 //            executorServices.add(threadPool);
 //            taskWorkers.add(new TaskWorker(category,threadsCount));
             threadPool.submit(new TaskWorker(category,threadsCount));
-            System.out.println("Init worker with category"+ category + ", with " + threadsCount + "  threads " + threadPool);
+            System.out.println("Init worker with category "+ category + ", with " + threadsCount + " thread(s) " + threadPool);
         }
     }
 
