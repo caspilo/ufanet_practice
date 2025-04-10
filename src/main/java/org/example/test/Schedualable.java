@@ -4,6 +4,6 @@ import java.util.Map;
 
 public interface Schedualable {
 
-    void  execute(Map<String, String> param);
+    void execute(Map<String, String> param);
 
 }

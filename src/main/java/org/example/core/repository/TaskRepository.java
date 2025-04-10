@@ -6,7 +6,7 @@ import org.example.core.entity.enums.TASK_STATUS;
 import java.util.List;
 
 public interface TaskRepository {
-    String save(ScheduledTask task);
+    void save(ScheduledTask task);
     void cancelTask(Long id);
     void lockTask(Long id);
     void changeTaskStatus(Long id, TASK_STATUS status);

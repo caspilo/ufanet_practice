@@ -8,6 +8,12 @@ import java.util.Optional;
 
 public class TaskScheduler {
 
-    JdbcTaskRepository jdbcTaskRepository;
+    private final TaskRepository taskRepository;
+
+    public TaskScheduler(JdbcTaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
+    }
+
+
 
 }

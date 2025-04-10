@@ -1,19 +1,26 @@
 package org.example;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.util.DriverDataSource;
+import org.example.config.DataSourceConfig;
+import org.example.core.entity.ScheduledTask;
+import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.repository.JdbcTaskRepository;
+import org.example.core.repository.TaskRepository;
 import org.example.core.service.TaskService;
 import org.example.test.DoSomething;
-import org.example.test.Schedualable;
 import org.example.worker.TaskWorker;
 import org.example.worker.TaskWorkerPool;
 
+import javax.sql.DataSource;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
-    public static TaskWorker taskWorker;
-    public static TaskService taskService;
-    public static Schedualable schedualable;
+
+    public static TaskRepository taskRepository;
 
     public static void main(String[] args) throws Exception {
 
@@ -43,8 +50,19 @@ public class Main {
         // 6. Вызываем какой-то МЕТОД , в который передаем TestClass
 
 
-        TaskWorker worker = new TaskWorker("DoSomethingNew", 1);
+        TaskWorker worker = new TaskWorker("DoSomething", 1);
         worker.executeTask(DoSomething.class.getCanonicalName(), params);
 
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(DataSourceConfig.jdbcUrl);
+        config.setUsername(DataSourceConfig.username);
+        config.setPassword(DataSourceConfig.password);
+        DataSource dataSource = new HikariDataSource(config);
+
+        taskRepository = new JdbcTaskRepository(dataSource);
+
+        //taskRepository.save(new ScheduledTask());
+        //taskRepository.rescheduleTask(-1988446412L, 60000);
+        taskRepository.cancelTask(-1988446412L);
     }
 }
