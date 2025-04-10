@@ -1,6 +1,5 @@
 package org.example.core.entity;
 
-
 import lombok.Data;
 import org.example.core.entity.enums.TASK_STATUS;
 
@@ -9,7 +8,7 @@ import java.sql.Timestamp;
 
 @Data
 @Entity
-@Table(name="scheduled_tasks")
+@Table(name="tasks")
 public class ScheduledTask {
 
     @Id
@@ -18,6 +17,12 @@ public class ScheduledTask {
 
     @Column(name = "type", nullable = false)
     private String type;
+
+    @Column(name = "canonical_name", nullable = false)
+    private String canonicalName;
+
+    @Column(name = "params", nullable = false)
+    private String params;
 
     @Column(name = "status", nullable = false)
     private TASK_STATUS status = TASK_STATUS.NONE;
@@ -35,7 +40,12 @@ public class ScheduledTask {
     }
 
     public ScheduledTask() {
-
+        this.id = 1000L + this.hashCode();
+        this.type = "default";
+        this.canonicalName = "default";
+        this.params = "{\"param1\": \"default\", \"param2\" : \"default\"}";
+        this.status = TASK_STATUS.NONE;
+        this.executionTime = new Timestamp(System.currentTimeMillis());
     }
 
     public Long getId() {
@@ -76,5 +86,21 @@ public class ScheduledTask {
 
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
+    }
+
+    public String getCanonicalName() {
+        return canonicalName;
+    }
+
+    public void setCanonicalName(String canonicalName) {
+        this.canonicalName = canonicalName;
+    }
+
+    public String getParams() {
+        return params;
+    }
+
+    public void setParams(String params) {
+        this.params = params;
     }
 }
