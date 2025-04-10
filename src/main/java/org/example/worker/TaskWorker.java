@@ -1,7 +1,7 @@
 package org.example.worker;
 
+import org.example.test.Schedualable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public class TaskWorker implements Runnable {
@@ -13,36 +13,36 @@ public class TaskWorker implements Runnable {
         this.threadCount = threadCount;
     }
 
-    public void executeTask(String task, Map<String, String> params) {
+    public void executeTask(String taskName, Map<String, String> params) {
         try {
-            Object o = Class.forName(task).newInstance();
-            o.getClass().getMethod("execute", Map.class).invoke(o, params);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException |
-                 InvocationTargetException e) {
+            Schedualable task = (Schedualable) Class.forName(taskName).getDeclaredConstructor().newInstance();
+            task.execute(params);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+//
+//    public void getCurrentTask(){
+//
+//    }
 
     @Override
     public void run() {
-        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) ");
-//        try {
-//            Object o = Class.forName(stringMap.get(category)).newInstance();
-//            o.getClass().getMethod("execute", Map.class).invoke(o, stringMap);
-//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException |
-//                 InvocationTargetException e) {
-//            throw new RuntimeException(e);
-//        }
-
-
+//        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) " +
+//                Thread.currentThread());
+        ;
 //        while (!Thread.currentThread().isInterrupted()){
-////            List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(type);
+//            List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(category);
+//            for(ScheduledTask scheduleTask: scheduledTaskList){
+        //    if ()
+//            }
+//            }
 //
 //            System.out.println(Thread.currentThread().getClass());
 
-        }
-
     }
+
+}
 
 //    public void executeTask(Long id) throws Exception {
 //        if(1+1==2) {
