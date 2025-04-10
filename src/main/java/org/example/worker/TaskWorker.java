@@ -22,27 +22,28 @@ public class TaskWorker implements Runnable {
             throw new RuntimeException(e);
         }
     }
+//
+//    public void getCurrentTask(){
+//
+//    }
 
     @Override
     public void run() {
-        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) ");
-//        try {
-//            Object o = Class.forName(stringMap.get(category)).newInstance();
-//            o.getClass().getMethod("execute", Map.class).invoke(o, stringMap);
-//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException |
-//                 InvocationTargetException e) {
-//            throw new RuntimeException(e);
-//        }
-
-
+        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) " +
+                Thread.currentThread());
+        ;
 //        while (!Thread.currentThread().isInterrupted()){
-////            List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(type);
+//            List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(category);
+//            for(ScheduledTask scheduleTask: scheduledTaskList){
+        //    if ()
+//            }
+//            }
 //
 //            System.out.println(Thread.currentThread().getClass());
 
-        }
-
     }
+
+}
 
 //    public void executeTask(Long id) throws Exception {
 //        if(1+1==2) {
