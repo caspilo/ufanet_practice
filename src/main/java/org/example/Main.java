@@ -31,14 +31,14 @@ public class Main {
         params.put("message", "Happy birthday!");
 
 
-        Map<String, Integer> params2 = new HashMap<>();
-        params2.put("Do", 2);
-        params2.put("NotDo", 3);
-
-        TaskWorkerPool taskWorkerPool = new TaskWorkerPool();
-
-        taskWorkerPool.initWorkers(Collections.singletonMap("DoSomething", 1));
-        taskWorkerPool.initWorkers(params2);
+//        Map<String, Integer> params2 = new HashMap<>();
+//        params2.put("Do", 2);
+//        params2.put("NotDo", 3);
+//
+//        TaskWorkerPool taskWorkerPool = new TaskWorkerPool();
+//
+//        taskWorkerPool.initWorkers(Collections.singletonMap("DoSomething", 1));
+//        taskWorkerPool.initWorkers(params2);
 
 //        taskWorkerPool.startWorkers();
         // 1. Наследуемся от класса ScheduleTask и прописываем бизнес-логику(TestClass)
@@ -63,6 +63,6 @@ public class Main {
 
         //taskRepository.save(new ScheduledTask());
         //taskRepository.rescheduleTask(-1988446412L, 60000);
-        taskRepository.cancelTask(-1988446412L);
+        taskRepository.cancelTask(1L);
     }
 }

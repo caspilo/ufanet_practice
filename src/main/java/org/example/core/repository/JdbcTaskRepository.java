@@ -1,13 +1,11 @@
 package org.example.core.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +13,8 @@ public class JdbcTaskRepository implements TaskRepository {
 
     private final DataSource dataSource;
     private final String tableName;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     public JdbcTaskRepository(final DataSource dataSource) {
         this.dataSource = dataSource;
@@ -28,22 +28,43 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void save(ScheduledTask task) {
+    public boolean existsById(Long id) {
+        return false;
+    }
 
-        String sql = "INSERT INTO " + tableName + " VALUES (?,?,?,?,?,?,?)";
+    // запись задачи в БД
+    @Override
+    public Long save(ScheduledTask task) {
+
+        String sql = "INSERT INTO " + tableName +
+                "(type, canonical_name, params, status, execution_time) " +
+                "VALUES (?,?,?,?,?)";
 
         try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement stmt = connection.prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            stmt.setLong(1, task.getId());
-            stmt.setString(2, task.getType());
-            stmt.setString(3, task.getCanonicalName());
-            stmt.setString(4, task.getParams());
-            stmt.setString(5, task.getStatus().name());
-            stmt.setTimestamp(6, task.getExecutionTime());
-            stmt.setInt(7, task.getRetryCount());
+            stmt.setString(1, task.getType());
+            stmt.setString(2, task.getCanonicalName());
+            stmt.setString(3, objectMapper.writeValueAsString(task.getParams()));
+            stmt.setString(4, task.getStatus().name());
+            stmt.setTimestamp(5, task.getExecutionTime());
 
-            stmt.executeUpdate();
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Failed to insert row into " + tableName);
+            }
+
+            try {
+                ResultSet generatedKeys = stmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getLong(1);
+                } else {
+                    throw new SQLException("Saving task failed, no ID obtained.");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to save task: ", e);
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -71,12 +92,16 @@ public class JdbcTaskRepository implements TaskRepository {
         String sql = "UPDATE " + tableName + " SET status = ? WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
 
-            preparedStatement.setLong(1,id);
-            preparedStatement.setString(2, status.name());
+            stmt.setString(1, status.name());
+            stmt.setLong(2,id);
 
-            preparedStatement.executeUpdate();
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Failed to change task status with ID " + id + " to " + status.name());
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -92,10 +117,10 @@ public class JdbcTaskRepository implements TaskRepository {
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
-            ResultSet result = stmt.executeQuery();
-
-            while (result.next()) {
-                tasks.add(createTaskFromResult(result));
+            try (ResultSet result = stmt.executeQuery()) {
+                while (result.next()) {
+                    tasks.add(createTaskFromResult(result));
+                }
             }
 
         } catch (Exception e) {
@@ -107,16 +132,11 @@ public class JdbcTaskRepository implements TaskRepository {
 
     private ScheduledTask createTaskFromResult(ResultSet result) throws SQLException {
 
-        ScheduledTask task = new ScheduledTask();
-        task.setId(result.getLong(1));
-        task.setType(result.getString(2));
-        task.setCanonicalName(result.getString(3));
-        task.setParams(result.getString(4));
-        task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
-        task.setExecutionTime(result.getTimestamp(6));
-        task.setRetryCount(result.getInt(7));
 
-        return task;
+
+
+
+        return null;
     }
 
 
@@ -161,7 +181,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
     }
 
-    // проверить существование задачи
+
     @Override
     public ScheduledTask findById(Long id) {
 

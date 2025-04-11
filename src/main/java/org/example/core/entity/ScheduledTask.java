@@ -1,49 +1,32 @@
 package org.example.core.entity;
 
-import lombok.Data;
 import org.example.core.entity.enums.TASK_STATUS;
 
-import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
-@Data
-@Entity
-@Table(name="tasks")
+
 public class ScheduledTask {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "type", nullable = false)
     private String type;
-
-    @Column(name = "canonical_name", nullable = false)
     private String canonicalName;
-
-    @Column(name = "params", nullable = false)
-    private String params;
-
-    @Column(name = "status", nullable = false)
+    private Map<String, String> params;
     private TASK_STATUS status = TASK_STATUS.NONE;
-
-    @Column(name = "execution_time", nullable = false)
     private Timestamp executionTime;
-
-    @Column(name="retry_count")
     private int retryCount = 0;
 
-    public ScheduledTask(Long id, String type, Timestamp executionTime) {
-        this.id = id;
+    public ScheduledTask(String type, Timestamp executionTime) {
         this.type = type;
         this.executionTime = executionTime;
     }
 
     public ScheduledTask() {
-        this.id = 1000L + this.hashCode();
         this.type = "default";
         this.canonicalName = "default";
-        this.params = "{\"param1\": \"default\", \"param2\" : \"default\"}";
+        this.params = new HashMap<>(Map.of("param1", "default",
+                                            "param2", "default"));
         this.status = TASK_STATUS.NONE;
         this.executionTime = new Timestamp(System.currentTimeMillis());
     }
@@ -52,7 +35,7 @@ public class ScheduledTask {
         return id;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
@@ -96,11 +79,11 @@ public class ScheduledTask {
         this.canonicalName = canonicalName;
     }
 
-    public String getParams() {
+    public Map<String, String> getParams() {
         return params;
     }
 
-    public void setParams(String params) {
+    public void setParams(Map<String, String> params) {
         this.params = params;
     }
 }
