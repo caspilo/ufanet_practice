@@ -33,6 +33,9 @@ public class JdbcTaskRepository implements TaskRepository {
 
     @Override
     public boolean existsById(Long id) {
+
+
+
         return false;
     }
 
@@ -139,15 +142,19 @@ public class JdbcTaskRepository implements TaskRepository {
 
         ScheduledTask task = new ScheduledTask();
 
-        task.setId(result.getLong(1));
-        task.setType(result.getString(2));
-        task.setCanonicalName(result.getString(3));
-        task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {}));
-        task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
-        task.setExecutionTime(result.getTimestamp(6));
-        task.setRetryCount(result.getInt(7));
+        try {
+            task.setId(result.getLong(1));
+            task.setType(result.getString(2));
+            task.setCanonicalName(result.getString(3));
+            task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {}));
+            task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
+            task.setExecutionTime(result.getTimestamp(6));
+            task.setRetryCount(result.getInt(7));
 
-        return task;
+            return task;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -204,12 +211,15 @@ public class JdbcTaskRepository implements TaskRepository {
             stmt.setLong(1, id);
 
             try (ResultSet result = stmt.executeQuery()) {
-                result.next();
-                return createTaskFromResult(result);
+                if (result.next()) {
+                    return createTaskFromResult(result);
+                }
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        return null;
     }
 }
