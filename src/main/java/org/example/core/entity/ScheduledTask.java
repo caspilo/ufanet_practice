@@ -27,7 +27,6 @@ public class ScheduledTask {
         this.canonicalName = "default";
         this.params = new HashMap<>(Map.of("param1", "default",
                                             "param2", "default"));
-        this.status = TASK_STATUS.NONE;
         this.executionTime = new Timestamp(System.currentTimeMillis());
     }
 

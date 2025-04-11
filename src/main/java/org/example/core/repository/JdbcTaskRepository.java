@@ -134,8 +134,6 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
 
-
-
         return null;
     }
 
@@ -149,10 +147,11 @@ public class JdbcTaskRepository implements TaskRepository {
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, category);
-            ResultSet result = stmt.executeQuery();
 
-            while (result.next()) {
-                tasks.add(createTaskFromResult(result));
+            try (ResultSet result = stmt.executeQuery()) {
+                while (result.next()) {
+                    tasks.add(createTaskFromResult(result));
+                }
             }
 
         } catch (Exception e) {
@@ -171,14 +170,13 @@ public class JdbcTaskRepository implements TaskRepository {
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setInt(1,delay);
+            preparedStatement.setInt(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
             preparedStatement.setLong(2, id);
 
             preparedStatement.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
 

@@ -62,7 +62,7 @@ public class Main {
         taskRepository = new JdbcTaskRepository(dataSource);
 
         //taskRepository.save(new ScheduledTask());
-        //taskRepository.rescheduleTask(-1988446412L, 60000);
+        taskRepository.rescheduleTask(1L, 3000);
         taskRepository.cancelTask(1L);
     }
 }
