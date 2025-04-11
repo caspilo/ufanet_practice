@@ -16,6 +16,7 @@ import org.example.worker.TaskWorkerPool;
 import javax.sql.DataSource;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -61,8 +62,6 @@ public class Main {
 
         taskRepository = new JdbcTaskRepository(dataSource);
 
-        //taskRepository.save(new ScheduledTask());
-        taskRepository.rescheduleTask(1L, 3000);
-        taskRepository.cancelTask(1L);
+        System.out.println(taskRepository.findById(1L).toString());
     }
 }
