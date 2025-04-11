@@ -30,11 +30,22 @@ public class ScheduledTask {
         this.executionTime = new Timestamp(System.currentTimeMillis());
     }
 
+
+    public String toString(){
+        return
+                "Task " + this.id +
+                        ": type: " + this.type +
+                        ", status: " + this.status +
+                        ", execution time: " + this.executionTime +
+                        ", retry count: " + this.retryCount;
+
+    }
+
     public Long getId() {
         return id;
     }
 
-    void setId(Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

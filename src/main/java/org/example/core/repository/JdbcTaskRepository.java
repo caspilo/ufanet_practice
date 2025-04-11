@@ -1,13 +1,17 @@
 package org.example.core.repository;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class JdbcTaskRepository implements TaskRepository {
 
@@ -130,11 +134,19 @@ public class JdbcTaskRepository implements TaskRepository {
         return tasks;
     }
 
-    private ScheduledTask createTaskFromResult(ResultSet result) throws SQLException {
+    private ScheduledTask createTaskFromResult(ResultSet result) throws SQLException, IOException {
 
+        ScheduledTask task = new ScheduledTask();
 
+        task.setId(result.getLong(1));
+        task.setType(result.getString(2));
+        task.setCanonicalName(result.getString(3));
+        task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {}));
+        task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
+        task.setExecutionTime(result.getTimestamp(6));
+        task.setRetryCount(result.getInt(7));
 
-        return null;
+        return task;
     }
 
 

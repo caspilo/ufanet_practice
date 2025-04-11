@@ -16,6 +16,7 @@ import org.example.worker.TaskWorkerPool;
 import javax.sql.DataSource;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -63,6 +64,18 @@ public class Main {
 
         //taskRepository.save(new ScheduledTask());
         taskRepository.rescheduleTask(1L, 3000);
-        taskRepository.cancelTask(1L);
+        //taskRepository.cancelTask(1L);
+
+        System.out.println("getReadyTasks() testing");
+        List<ScheduledTask> readyTasks = taskRepository.getReadyTasks();
+        for (ScheduledTask task : readyTasks) {
+            System.out.println(task.toString());
+        }
+
+        System.out.println("getReadyTasksByCategory(\"default\") testing");
+        List<ScheduledTask> readyDefaultTasks = taskRepository.getReadyTasksByCategory("default");
+        for (ScheduledTask task : readyDefaultTasks) {
+            System.out.println(task.toString());
+        }
     }
 }
