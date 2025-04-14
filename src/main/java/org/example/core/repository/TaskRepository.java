@@ -15,4 +15,6 @@ public interface TaskRepository {
     void rescheduleTask(Long id, int delay);
     ScheduledTask findById(Long id);
     boolean existsById(Long id);
+    void startTransaction();
+    void commitTransaction();
 }
