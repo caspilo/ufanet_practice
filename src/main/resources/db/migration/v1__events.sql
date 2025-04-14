@@ -6,6 +6,6 @@ CREATE EVENT auto_update_task_status
     UPDATE tasks
     SET status = 'READY'
     WHERE execution_time <= NOW()
-      AND status = 'PENDING';
+      AND status IN ('READY', 'NONE');
 
 SET GLOBAL event_scheduler = ON;

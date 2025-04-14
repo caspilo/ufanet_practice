@@ -2,7 +2,7 @@ package org.example.core.service;
 
 import org.example.core.delay.ExponentialDelay;
 import org.example.core.repository.TaskRepository;
-import org.example.test.Schedualable;
+import org.example.test.Schedulable;
 
 import java.util.Map;
 
@@ -14,7 +14,7 @@ public class TaskExecutor {
         this.taskRepository = taskRepository;
     }
 
-    public void executeTask(Schedualable task, Map<String, String> params) {
+    public void executeTask(Schedulable task, Map<String, String> params) {
 
     }
 

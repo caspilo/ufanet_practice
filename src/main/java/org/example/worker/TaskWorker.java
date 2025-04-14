@@ -37,11 +37,12 @@ public class TaskWorker implements Runnable {
                 Thread.currentThread());
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(category);
+                Thread.sleep(5000); // периодичность получения задач из БД
+                List<ScheduledTask> scheduledTaskList = taskService.getReadyTasksByType(category);
                 for (ScheduledTask task : scheduledTaskList) {
                     taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
+                    Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(task.getCanonicalName()).getDeclaredConstructor().newInstance();
-                    executeTask(taskClass, task.getParams());
                     if (executeTask(taskClass, task.getParams())) {
                         taskService.changeTaskStatus(task.getId(), TASK_STATUS.COMPLETED);
                     } else {

@@ -16,6 +16,6 @@ public interface TaskService {
 
     ScheduledTask createTask(Long id, String type, Timestamp executionTime) throws Exception;
 
-    List<ScheduledTask> getPendingTasksByType(String type);
+    List<ScheduledTask> getReadyTasksByType(String type);
 
 }
