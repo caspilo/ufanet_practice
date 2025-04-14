@@ -34,9 +34,7 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public boolean existsById(Long id) {
 
-
-
-        return false;
+        return findById(id) != null;
     }
 
     // запись задачи в БД
@@ -84,14 +82,6 @@ public class JdbcTaskRepository implements TaskRepository {
         changeTaskStatus(id, TASK_STATUS.CANCELED);
     }
 
-    // заблокировать задачу
-    @Override
-    public void lockTask(Long id) {
-
-        String sql = "";
-
-    }
-
 
     @Override
     public void changeTaskStatus(Long id, TASK_STATUS status) {
@@ -137,6 +127,28 @@ public class JdbcTaskRepository implements TaskRepository {
         return tasks;
     }
 
+
+    @Override
+    public List<ScheduledTask> getAndLockReadyTasks() {
+
+        List<ScheduledTask> tasks = new ArrayList<>();
+
+        String sql = "START TRANSACTION; SELECT * FROM " + tableName + " WHERE status = 'READY' LIMIT 10 FOR UPDATE SKIP LOCKED";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            try (ResultSet result = stmt.executeQuery()) {
+                while (result.next()) {
+                    tasks.add(createTaskFromResult(result));
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return tasks;
+    }
 
     private ScheduledTask createTaskFromResult(ResultSet result) throws SQLException, IOException {
 

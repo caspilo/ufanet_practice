@@ -61,7 +61,5 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
-
-        System.out.println(taskRepository.findById(1L).toString());
     }
 }
