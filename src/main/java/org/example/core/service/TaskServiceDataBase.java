@@ -35,7 +35,7 @@ public class TaskServiceDataBase implements TaskService {
     }
 
     @Override
-    public List<ScheduledTask> getPendingTasksByType(String type) {
+    public List<ScheduledTask> getReadyTasksByType(String type) {
         return taskRepository.getReadyTasksByCategory(type);
     }
 

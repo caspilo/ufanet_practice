@@ -25,11 +25,6 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println(DoSomething.class.getCanonicalName());
-        Map<String, String> params = new HashMap<>();
-        params.put("userID", "123L");
-        params.put("message", "Happy birthday!");
-
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DataSourceConfig.jdbcUrl);
         config.setUsername(DataSourceConfig.username);
@@ -37,5 +32,11 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
+        taskService = new TaskServiceDataBase(taskRepository);
+
+        taskRepository.save(new ScheduledTask());
+
+        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService);
+        taskWorkerPool.initWorkers(Map.of("DoSomething", 1));
     }
 }
