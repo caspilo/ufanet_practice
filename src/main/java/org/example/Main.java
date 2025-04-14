@@ -61,5 +61,7 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
+
+        taskRepository.save(new ScheduledTask());
     }
 }

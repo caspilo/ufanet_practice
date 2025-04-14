@@ -1038,52 +1038,60 @@ sys|schema||mysql.sys|localhost|TRIGGER|G</Grants>
       <Host>localhost</Host>
       <Plugin>caching_sha2_password</Plugin>
     </user>
-    <table id="298" parent="293" name="tasks">
+    <scheduled-event id="298" parent="293" name="auto_update_task_status">
+      <Definer>root@localhost</Definer>
+      <Interval>&apos;1&apos; MINUTE</Interval>
+      <LastExecuted>2025-04-14.18:28:38</LastExecuted>
+      <SourceTextLength>99</SourceTextLength>
+      <Starts>&apos;2025-04-14 13:28:38&apos;</Starts>
+      <Status>enabled</Status>
+    </scheduled-event>
+    <table id="299" parent="293" name="tasks">
       <Engine>InnoDB</Engine>
       <CollationName>utf8mb4_0900_ai_ci</CollationName>
     </table>
-    <column id="299" parent="298" name="id">
-      <AutoIncrement>1</AutoIncrement>
+    <column id="300" parent="299" name="id">
+      <AutoIncrement>5</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>bigint|0s</StoredType>
     </column>
-    <column id="300" parent="298" name="type">
+    <column id="301" parent="299" name="type">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="301" parent="298" name="canonical_name">
+    <column id="302" parent="299" name="canonical_name">
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="302" parent="298" name="params">
+    <column id="303" parent="299" name="params">
       <NotNull>1</NotNull>
       <Position>4</Position>
       <StoredType>json|0s</StoredType>
     </column>
-    <column id="303" parent="298" name="status">
+    <column id="304" parent="299" name="status">
       <NotNull>1</NotNull>
       <Position>5</Position>
       <StoredType>enum(&apos;PENDING&apos;, &apos;READY&apos;, &apos;PROCESSING&apos;, &apos;FAILED&apos;, &apos;COMPLETED&apos;, &apos;CANCELED&apos;, &apos;NONE&apos;)|0e</StoredType>
     </column>
-    <column id="304" parent="298" name="execution_time">
+    <column id="305" parent="299" name="execution_time">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>6</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <column id="305" parent="298" name="retry_count">
+    <column id="306" parent="299" name="retry_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>7</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <index id="306" parent="298" name="PRIMARY">
+    <index id="307" parent="299" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <key id="307" parent="298" name="PRIMARY">
+    <key id="308" parent="299" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>

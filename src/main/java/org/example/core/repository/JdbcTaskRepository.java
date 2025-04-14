@@ -1,6 +1,5 @@
 package org.example.core.repository;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.entity.ScheduledTask;
@@ -37,7 +36,7 @@ public class JdbcTaskRepository implements TaskRepository {
         return findById(id) != null;
     }
 
-    // запись задачи в БД
+
     @Override
     public Long save(ScheduledTask task) {
 
@@ -105,6 +104,36 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
+    public void startTransaction() {
+
+        String sql = "START TRANSACTION";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+
+            stmt.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void commitTransaction() {
+
+        String sql = "COMMIT";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+
+            stmt.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     @Override
     public List<ScheduledTask> getReadyTasks() {
 
@@ -133,7 +162,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "START TRANSACTION; SELECT * FROM " + tableName + " WHERE status = 'READY' LIMIT 10 FOR UPDATE SKIP LOCKED";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' LIMIT 10 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -149,6 +178,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         return tasks;
     }
+
 
     private ScheduledTask createTaskFromResult(ResultSet result) throws SQLException, IOException {
 
