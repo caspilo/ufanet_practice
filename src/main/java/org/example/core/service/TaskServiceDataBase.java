@@ -6,7 +6,6 @@ import org.example.core.repository.TaskRepository;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Optional;
 
 public class TaskServiceDataBase implements TaskService {
     private final TaskRepository taskRepository;
@@ -17,7 +16,7 @@ public class TaskServiceDataBase implements TaskService {
 
     @Override
     public ScheduledTask getTask(long id) throws Exception {
-        return null;
+        return taskRepository.findById(id);
     }
 
     @Override
@@ -26,8 +25,8 @@ public class TaskServiceDataBase implements TaskService {
     }
 
     @Override
-    public ScheduledTask changeTaskStatus(Long id, TASK_STATUS taskStatus) throws Exception {
-        return null;
+    public void changeTaskStatus(Long id, TASK_STATUS taskStatus) throws Exception {
+        taskRepository.changeTaskStatus(id, taskStatus);
     }
 
     @Override
@@ -37,10 +36,10 @@ public class TaskServiceDataBase implements TaskService {
 
     @Override
     public List<ScheduledTask> getPendingTasksByType(String type) {
-        return List.of();
+        return taskRepository.getReadyTasksByCategory(type);
     }
 
-//    @Override
+    //    @Override
 //    public ScheduledTask getTask(long id) throws Exception {
 //        return taskRepository.findById(id).orElse(new ScheduledTask());
 //    }
