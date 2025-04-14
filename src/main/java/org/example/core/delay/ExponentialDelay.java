@@ -8,11 +8,12 @@ public class ExponentialDelay implements Delay{
 
     static public int getNextDelay(int attemptCount) {
         base = Math.E;
-        return (int)Math.pow(base, attemptCount);
+        int delay = (int)Math.pow(base, attemptCount);
+        return delay <= limit ? delay : -1;
     }
 
     static public int getNextDelay(double baseValue, int attemptCount) {
         base = baseValue;
-        return (int)Math.pow(base, attemptCount);
+        return getNextDelay(attemptCount);
     }
 }

@@ -1,6 +1,5 @@
-package org.example.core;
+package org.example.core.service;
 
-import org.example.core.service.TaskScheduler;
 import org.example.worker.TaskWorkerPool;
 
 public class ScheduledTaskSystem implements Runnable{
