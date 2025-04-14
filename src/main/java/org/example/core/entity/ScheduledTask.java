@@ -25,8 +25,8 @@ public class ScheduledTask {
     public ScheduledTask() {
         this.type = "DoSomething";
         this.canonicalName = "org.example.test.DoSomething";
-        this.params = new HashMap<>(Map.of("ID", "123",
-                                            "message", "Test message"));
+        this.params = Map.of("ID", "123",
+                "message", "Test message");
         this.executionTime = new Timestamp(System.currentTimeMillis());
     }
 
