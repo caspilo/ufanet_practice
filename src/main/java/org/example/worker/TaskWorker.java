@@ -1,47 +1,58 @@
 package org.example.worker;
 
-import org.example.test.Schedualable;
+import org.example.core.entity.ScheduledTask;
+import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.service.TaskService;
+import org.example.test.Schedulable;
 
+import java.util.List;
 import java.util.Map;
 
 public class TaskWorker implements Runnable {
     private final String category;
     private final int threadCount;
+    private final TaskService taskService;
 
-    public TaskWorker(String category, int threadCount) {
+
+    public TaskWorker(String category, int threadCount, TaskService taskService) {
         this.category = category;
         this.threadCount = threadCount;
+        this.taskService = taskService;
     }
 
-    public void executeTask(String taskName, Map<String, String> params) {
+
+    public boolean executeTask(Schedulable task, Map<String, String> params) {
         try {
-            Schedualable task = (Schedualable) Class.forName(taskName).getDeclaredConstructor().newInstance();
             task.execute(params);
+            return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-//
-//    public void getCurrentTask(){
-//
-//    }
+
 
     @Override
     public void run() {
-//        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) " +
-//                Thread.currentThread());
-        ;
-//        while (!Thread.currentThread().isInterrupted()){
-//            List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(category);
-//            for(ScheduledTask scheduleTask: scheduledTaskList){
-        //    if ()
-//            }
-//            }
-//
-//            System.out.println(Thread.currentThread().getClass());
-
+        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) " +
+                Thread.currentThread());
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                List<ScheduledTask> scheduledTaskList = taskService.getPendingTasksByType(category);
+                for (ScheduledTask task : scheduledTaskList) {
+                    taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
+                    Schedulable taskClass = (Schedulable) Class.forName(task.getCanonicalName()).getDeclaredConstructor().newInstance();
+                    executeTask(taskClass, task.getParams());
+                    if (executeTask(taskClass, task.getParams())) {
+                        taskService.changeTaskStatus(task.getId(), TASK_STATUS.COMPLETED);
+                    } else {
+                        taskService.changeTaskStatus(task.getId(), TASK_STATUS.FAILED);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-
 }
 
 //    public void executeTask(Long id) throws Exception {
