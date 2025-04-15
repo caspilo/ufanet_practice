@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class JdbcTaskRepository implements TaskRepository {
 
@@ -76,7 +75,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void cancelTask(Long id)  {
+    public void cancelTask(Long id) {
 
         changeTaskStatus(id, TASK_STATUS.CANCELED);
     }
@@ -91,7 +90,7 @@ public class JdbcTaskRepository implements TaskRepository {
             PreparedStatement stmt = connection.prepareStatement(sql);
 
             stmt.setString(1, status.name());
-            stmt.setLong(2,id);
+            stmt.setLong(2, id);
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {

@@ -3,7 +3,6 @@ package org.example.core.entity;
 import org.example.core.entity.enums.TASK_STATUS;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -31,7 +30,7 @@ public class ScheduledTask {
     }
 
 
-    public String toString(){
+    public String toString() {
         return
                 "Task " + this.id +
                         ": type: " + this.type +

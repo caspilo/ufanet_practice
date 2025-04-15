@@ -38,7 +38,7 @@ public class TaskWorker implements Runnable {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 Thread.sleep(5000); // периодичность получения задач из БД
-                List<ScheduledTask> scheduledTaskList = taskService.getReadyTasksByType(category);
+                List<ScheduledTask> scheduledTaskList = taskService.getReadyTasksByCategory(category);
                 for (ScheduledTask task : scheduledTaskList) {
                     taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
                     Thread.sleep(2000); // имитация процесса выполнения
@@ -55,18 +55,3 @@ public class TaskWorker implements Runnable {
         }
     }
 }
-
-//    public void executeTask(Long id) throws Exception {
-//        if(1+1==2) {
-//            taskService.changeTaskStatus(id, TASK_STATUS.COMPLETED);
-//        }else {
-//            taskService.changeTaskStatus(id,TASK_STATUS.FAILED);
-//            retryTask();
-//        }
-//    }
-//
-//    public void retryTask(){
-//}
-//    }
-
-
