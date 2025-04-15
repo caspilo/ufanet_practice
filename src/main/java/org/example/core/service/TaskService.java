@@ -2,20 +2,25 @@ package org.example.core.service;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
+import org.example.test.Schedulable;
 
-import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 public interface TaskService {
 
-    ScheduledTask getTask(long id) throws Exception;
+    ScheduledTask getTask(long id);
 
-    void cancelTask(long id) throws Exception;
+    void cancelTask(long id);
 
-    void changeTaskStatus(Long id, TASK_STATUS taskStatus) throws Exception;
+    void changeTaskStatus(Long id, TASK_STATUS taskStatus);
 
-    ScheduledTask createTask(Long id, String type, Timestamp executionTime) throws Exception;
+    List<ScheduledTask> getReadyTasksByCategory(String category);
 
-    List<ScheduledTask> getReadyTasksByType(String type);
+    public Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime, double delayBase);
+
+    public Long scheduleTask(Class schedulableClass, Map<String, String> params, String executionTime, double delayBase);
+
+    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase);
 
 }

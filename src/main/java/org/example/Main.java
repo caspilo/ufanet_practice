@@ -3,17 +3,17 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
-import org.example.core.entity.ScheduledTask;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.TaskRepository;
+import org.example.core.service.TaskScheduler;
 import org.example.core.service.TaskService;
-import org.example.core.service.TaskServiceDataBase;
 import org.example.test.DoSomething;
-import org.example.worker.TaskWorker;
 import org.example.worker.TaskWorkerPool;
 
 import javax.sql.DataSource;
-import java.util.Collections;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +25,11 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        Map<String, String> params = new HashMap<>();
+        params.put("userID", "123L");
+        params.put("message", "Happy birthday!");
+
+
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DataSourceConfig.jdbcUrl);
         config.setUsername(DataSourceConfig.username);
@@ -32,11 +37,26 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
-        taskService = new TaskServiceDataBase(taskRepository);
+        taskService = new TaskScheduler(taskRepository);
 
-        taskRepository.save(new ScheduledTask());
+
+        Timestamp as = new Timestamp(System.currentTimeMillis());
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String stroka = df.format(as);
+        System.out.println(Timestamp.valueOf("2000-10-10 10:22:12.99").getTime());
+
+        System.out.println(df.format(as));
+
+
+        taskService.scheduleTask(new DoSomething(), params, "2000-10-10 10:22:12", 1);
+
+        Map<String, Integer> params2 = new HashMap<>();
+        params2.put("DoSomething", 1);
+        params2.put("Do", 2);
+        params2.put("NotDo", 3);
 
         TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService);
-        taskWorkerPool.initWorkers(Map.of("DoSomething", 1));
+
+        taskWorkerPool.initWorkers(params2);
     }
 }
