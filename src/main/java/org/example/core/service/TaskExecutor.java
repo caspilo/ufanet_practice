@@ -10,13 +10,17 @@ import java.util.Map;
 public class TaskExecutor {
 
     TaskRepository taskRepository;
+    TaskService taskService;
+    DelayService delayService;
 
-    public TaskExecutor(TaskRepository taskRepository) {
+    public TaskExecutor(TaskRepository taskRepository, TaskService taskService, DelayService delayService) {
         this.taskRepository = taskRepository;
+        this.taskService = taskService;
+        this.delayService = delayService;
     }
 
     public void executeTask(Schedulable task, Map<String, String> params) {
-
+        
         
 
     }

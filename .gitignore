@@ -43,3 +43,4 @@ build/
 
 ТЗ.md
 src/test
+src/main/resources/db/migration

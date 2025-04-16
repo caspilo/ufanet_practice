@@ -16,7 +16,7 @@ public class DelayCalculator {
         return getNextDelay(attemptCount, defaultBase, limit);
     }
 
-    static public int getNextDelay(int attemptCount, double base, double limit) {
+    static public int getNextDelay(int attemptCount, double base, int limit) {
         int delay = (int)Math.pow(base, attemptCount);
         return delay <= limit ? delay : -1;
     }

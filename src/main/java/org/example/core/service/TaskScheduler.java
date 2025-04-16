@@ -17,14 +17,20 @@ public class TaskScheduler implements TaskService {
         this.taskRepository = taskRepository;
     }
 
+
+    @Override
     public Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime, double delayBase) {
         return scheduleTask(schedulableClass.getClass(), params, executionTime, delayBase);
     }
 
+
+    @Override
     public Long scheduleTask(Class objectClass, Map<String, String> params, String executionTime, double delayBase) {
         return scheduleTask(objectClass.getName(), params, executionTime, delayBase);
     }
 
+
+    @Override
     public Long scheduleTask(String className, Map<String, String> params, String executionTime, double delayBase) {
         ScheduledTask task = new ScheduledTask();
         task.setCanonicalName(className);
@@ -33,24 +39,21 @@ public class TaskScheduler implements TaskService {
         return taskRepository.save(task);
     }
 
-    public ScheduledTask getTask(long id) {
-        return taskRepository.findById(id);
-    }
 
+    @Override
     public void cancelTask(long id) {
-        if (!getTask(id).getStatus().equals(TASK_STATUS.COMPLETED)) {
-            changeTaskStatus(id, TASK_STATUS.CANCELED);
+
+        ScheduledTask task = taskRepository.findById(id);
+
+        if (task != null) {
+            if (task.getStatus() == TASK_STATUS.PENDING) {
+                taskRepository.changeTaskStatus(id, TASK_STATUS.CANCELED);
+            }
+            else {
+                throw new RuntimeException("Cannot cancel task with id " + id + ": task status is " + task.getStatus().name());
+            }
         } else {
-            throw new RuntimeException("ERROR. Can`t cancel this task. Status for task with id: " + id + "is COMPLETED.");
+            throw new RuntimeException("Cannot cancel task with id " + id + ": task not found");
         }
-    }
-
-    public void changeTaskStatus(Long id, TASK_STATUS taskStatus) {
-        getTask(id).setStatus(taskStatus);
-    }
-
-
-    public List<ScheduledTask> getReadyTasksByCategory(String category) {
-        return taskRepository.getReadyTasksByCategory(category);
     }
 }
