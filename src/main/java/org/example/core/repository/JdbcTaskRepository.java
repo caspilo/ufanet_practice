@@ -103,6 +103,7 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
+    @Override
     public void startTransaction() {
 
         String sql = "START TRANSACTION";
@@ -118,6 +119,7 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
+    @Override
     public void commitTransaction() {
 
         String sql = "COMMIT";
@@ -161,7 +163,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' LIMIT 10 FOR UPDATE SKIP LOCKED";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' LIMIT 5 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -179,7 +181,7 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private ScheduledTask createTaskFromResult(ResultSet result) throws SQLException, IOException {
+    private ScheduledTask createTaskFromResult(ResultSet result) {
 
         ScheduledTask task = new ScheduledTask();
 
@@ -203,7 +205,32 @@ public class JdbcTaskRepository implements TaskRepository {
     public List<ScheduledTask> getReadyTasksByCategory(String category) {
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ?";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ? LIMIT 5";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, category);
+
+            try (ResultSet result = stmt.executeQuery()) {
+                while (result.next()) {
+                    tasks.add(createTaskFromResult(result));
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return tasks;
+    }
+
+
+    @Override
+    public List<ScheduledTask> getAndLockReadyTasksByCategory(String category) {
+
+        List<ScheduledTask> tasks = new ArrayList<>();
+
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ? LIMIT 5 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);

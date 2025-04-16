@@ -23,4 +23,10 @@ public interface TaskService {
 
     public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase);
 
+    List<ScheduledTask> getAndLockReadyTasksByType(String type);
+
+    void startTransaction();
+
+    void commitTransaction();
+
 }

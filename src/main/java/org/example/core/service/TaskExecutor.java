@@ -1,6 +1,7 @@
 package org.example.core.service;
 
-import org.example.core.delay.ExponentialDelay;
+import org.example.core.delay.DelayCalculator;
+import org.example.core.entity.enums.TASK_STATUS;
 import org.example.core.repository.TaskRepository;
 import org.example.test.Schedulable;
 
@@ -16,13 +17,20 @@ public class TaskExecutor {
 
     public void executeTask(Schedulable task, Map<String, String> params) {
 
+        
+
     }
 
     private boolean delayTask(Long id, int retryCount) {
 
-        int delay = ExponentialDelay.getNextDelay(retryCount);
+        int delay = DelayCalculator.getNextDelay(retryCount);
 
-        taskRepository.rescheduleTask(id, ExponentialDelay.getNextDelay(retryCount));
+        if (delay > 0) {
+            taskRepository.rescheduleTask(id, delay);
+        }
+        else {
+            taskRepository.changeTaskStatus(id, TASK_STATUS.FAILED);
+        }
 
         return delay > 0;
     }
