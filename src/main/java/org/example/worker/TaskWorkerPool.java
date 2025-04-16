@@ -31,12 +31,4 @@ public class TaskWorkerPool {
             System.out.println("Init worker with category "+ category + ", with " + threadsCount + " thread(s) " + threadPool);
         }
     }
-
-//    public void startWorkers(){
-//        for(TaskWorker taskWorker: taskWorkers){
-//            for (ExecutorService service: executorServices){
-//                service.submit(taskWorker);
-//            }
-//        }
-//    }
 }
