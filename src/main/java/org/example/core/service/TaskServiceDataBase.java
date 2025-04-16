@@ -39,6 +39,24 @@ public class TaskServiceDataBase implements TaskService {
         return taskRepository.getReadyTasksByCategory(type);
     }
 
+
+    @Override
+    public List<ScheduledTask> getAndLockReadyTasksByType(String type) {
+        return taskRepository.getAndLockReadyTasksByCategory(type);
+    }
+
+
+    @Override
+    public void startTransaction() {
+        taskRepository.startTransaction();
+    }
+
+
+    @Override
+    public void commitTransaction() {
+        taskRepository.commitTransaction();
+    }
+
     //    @Override
 //    public ScheduledTask getTask(long id) throws Exception {
 //        return taskRepository.findById(id).orElse(new ScheduledTask());

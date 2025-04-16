@@ -34,9 +34,13 @@ public class Main {
         taskRepository = new JdbcTaskRepository(dataSource);
         taskService = new TaskServiceDataBase(taskRepository);
 
-        taskRepository.save(new ScheduledTask());
+        //taskRepository.save(new ScheduledTask());
 
-        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService);
-        taskWorkerPool.initWorkers(Map.of("DoSomething", 1));
+        //TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService);
+        //taskWorkerPool.initWorkers(Map.of("DoSomething", 1));
+        //taskWorkerPool.initWorkers(Map.of("DoSomething", 1));
+
+        // scheduler.scheduleTask(..., "2025-04-15 13:00:00", ...)
+        // scheduler.scheduleTask(..., TimeClass(2025, 4, 15, 13, 0, 0), ...)
     }
 }

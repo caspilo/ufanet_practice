@@ -18,4 +18,10 @@ public interface TaskService {
 
     List<ScheduledTask> getReadyTasksByType(String type);
 
+    List<ScheduledTask> getAndLockReadyTasksByType(String type);
+
+    void startTransaction();
+
+    void commitTransaction();
+
 }
