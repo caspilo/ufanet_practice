@@ -6,10 +6,9 @@ import org.example.core.repository.TaskRepository;
 import org.example.test.Schedulable;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Map;
 
-public class TaskScheduler implements TaskService {
+public class TaskScheduler implements TaskSchedulerService {
 
     private final TaskRepository taskRepository;
 
@@ -25,32 +24,33 @@ public class TaskScheduler implements TaskService {
         return scheduleTask(objectClass.getName(), params, executionTime, delayBase);
     }
 
-    public Long scheduleTask(String className, Map<String, String> params, String executionTime, double delayBase) {
+    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase) {
+        return scheduleTask(schedulableClassName, params, executionTime, delayBase, false,
+                false, -1,-1, -1);
+    }
+
+    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase,
+                             boolean withRetry, boolean fixedRetryPolicy, double fixDelayValue, int retryCount, int upLimit) {
         ScheduledTask task = new ScheduledTask();
-        task.setCanonicalName(className);
+        task.setCanonicalName(schedulableClassName);
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
+        if (withRetry) {
+
+        }
+
         return taskRepository.save(task);
     }
 
-    public ScheduledTask getTask(long id) {
-        return taskRepository.findById(id);
-    }
-
-    public void cancelTask(long id) {
-        if (!getTask(id).getStatus().equals(TASK_STATUS.COMPLETED)) {
-            changeTaskStatus(id, TASK_STATUS.CANCELED);
+    public void cancelTask(Long id) {
+        if (!taskRepository.findById(id).getStatus().equals(TASK_STATUS.COMPLETED)) {
+            taskRepository.changeTaskStatus(id, TASK_STATUS.CANCELED);
         } else {
             throw new RuntimeException("ERROR. Can`t cancel this task. Status for task with id: " + id + "is COMPLETED.");
         }
     }
 
-    public void changeTaskStatus(Long id, TASK_STATUS taskStatus) {
-        getTask(id).setStatus(taskStatus);
-    }
-
-
-    public List<ScheduledTask> getReadyTasksByCategory(String category) {
-        return taskRepository.getReadyTasksByCategory(category);
+    public void rescheduleTask(Long id, Long delay) {
+        taskRepository.rescheduleTask(id, delay);
     }
 }
