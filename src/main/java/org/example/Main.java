@@ -3,6 +3,7 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.entity.ScheduledTask;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.TaskRepository;
 import org.example.core.service.DatabaseTaskActions;
@@ -47,23 +48,10 @@ public class Main {
         taskService = new DatabaseTaskActions(taskRepository);
         taskSchedulerService = new TaskScheduler(taskRepository);
 
+        ScheduledTask task = new ScheduledTask();
+        task.setType("PushNotification");
 
-        Timestamp as = new Timestamp(System.currentTimeMillis());
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String stroka = df.format(as);
-        System.out.println(Timestamp.valueOf("2000-10-10 10:22:12.99").getTime());
+        taskRepository.save(task);
 
-        System.out.println(df.format(as));
-
-
-
-        Map<String, Integer> params2 = new HashMap<>();
-        params2.put("DoSomething", 1);
-        params2.put("Do", 2);
-        params2.put("NotDo", 3);
-
-        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService, taskSchedulerService, delayService);
-
-        taskWorkerPool.initWorkers(params2);
     }
 }
