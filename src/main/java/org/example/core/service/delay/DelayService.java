@@ -4,7 +4,7 @@ public interface DelayService {
 
     boolean getRetryStateForTask(Long id);
 
-    Long getFixedDelayValue(Long id);
+    long getFixedDelayValue(Long id);
 
     boolean isRetryForTaskFixed(Long id);
 
@@ -12,5 +12,5 @@ public interface DelayService {
 
     double getDelayBase(Long id);
 
-    double getUpLimit(Long id);
+    long getUpLimit(Long id);
 }

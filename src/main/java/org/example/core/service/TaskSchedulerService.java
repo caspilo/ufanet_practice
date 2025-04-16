@@ -17,5 +17,5 @@ public interface TaskSchedulerService {
     Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase,
                       boolean withRetry, boolean fixedRetryPolicy, double fixDelayValue, int retryCount, int upLimit);
 
-    void rescheduleTask(Long id, Long delay);
+    void rescheduleTask(Long id, long delay);
 }

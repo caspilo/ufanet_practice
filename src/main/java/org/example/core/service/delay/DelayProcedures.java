@@ -13,8 +13,8 @@ public class DelayProcedures implements DelayService{
     }
 
     @Override
-    public Long getFixedDelayValue(Long id) {
-        return null;
+    public long getFixedDelayValue(Long id) {
+        return 0;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class DelayProcedures implements DelayService{
     }
 
     @Override
-    public double getUpLimit(Long id) {
+    public long getUpLimit(Long id) {
         return 0;
     }
 }

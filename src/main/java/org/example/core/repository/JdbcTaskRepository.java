@@ -6,7 +6,6 @@ import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,18 +38,23 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public Long save(ScheduledTask task) {
 
-        String sql = "INSERT INTO " + tableName +
+        createTableByType(task.getType());
+
+        String table_name = "tasks_" + task.getType();
+
+        String sql = "INSERT INTO ? " +
                 "(type, canonical_name, params, status, execution_time) " +
                 "VALUES (?,?,?,?,?)";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            stmt.setString(1, task.getType());
-            stmt.setString(2, task.getCanonicalName());
-            stmt.setString(3, objectMapper.writeValueAsString(task.getParams()));
-            stmt.setString(4, task.getStatus().name());
-            stmt.setTimestamp(5, task.getExecutionTime());
+            stmt.setString(1, table_name);
+            stmt.setString(2, task.getType());
+            stmt.setString(3, task.getCanonicalName());
+            stmt.setString(4, objectMapper.writeValueAsString(task.getParams()));
+            stmt.setString(5, task.getStatus().name());
+            stmt.setTimestamp(6, task.getExecutionTime());
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -68,6 +72,31 @@ public class JdbcTaskRepository implements TaskRepository {
                 throw new RuntimeException("Failed to save task: ", e);
             }
 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void createTableByType(String type) {
+
+        String table_name = "tasks_" + type;
+
+        String sql = """
+                CREATE TABLE IF NOT EXISTS ? (\
+                id BIGINT PRIMARY KEY AUTO_INCREMENT,\
+                    type VARCHAR(50) NOT NULL,\
+                    canonical_name VARCHAR(255) NOT NULL,\
+                    params JSON NOT NULL,\
+                    status ENUM('PENDING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\
+                    execution_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\
+                    retry_count INT DEFAULT 0\
+                );""";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, table_name);
+            stmt.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -251,7 +280,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void rescheduleTask(Long id, Long delay) {
+    public void rescheduleTask(Long id, long delay) {
 
         String sql = "UPDATE tasks SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
 

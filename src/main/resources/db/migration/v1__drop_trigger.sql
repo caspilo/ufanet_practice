@@ -1,2 +1,0 @@
-DROP TRIGGER update_status_before_update;
-DROP TRIGGER update_status_before_insert;

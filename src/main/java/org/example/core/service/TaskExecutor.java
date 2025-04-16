@@ -21,7 +21,7 @@ public class TaskExecutor {
 
     private boolean delayTask(Long id, int retryCount) {
 
-        Long delay = getNextDelay(retryCount);
+        long delay = getNextDelay(retryCount);
 
         if (delay > 0) {
             taskSchedulerService.rescheduleTask(id, delay);
@@ -41,7 +41,7 @@ public class TaskExecutor {
         }
     }
 
-    private void exponentialRetryPolicy(Long id, int retryCount, double delayBase, double limit) {
+    private void exponentialRetryPolicy(Long id, int retryCount, double delayBase, long limit) {
         long delay = getNextDelay(retryCount, delayBase, limit);
         if (delay >= 0) {
             taskSchedulerService.rescheduleTask(id, delay);
