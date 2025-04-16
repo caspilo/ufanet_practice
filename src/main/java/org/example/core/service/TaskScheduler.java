@@ -6,10 +6,9 @@ import org.example.core.repository.TaskRepository;
 import org.example.test.Schedulable;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Map;
 
-public class TaskScheduler implements TaskService {
+public class TaskScheduler implements TaskSchedulerService {
 
     private final TaskRepository taskRepository;
 
@@ -31,17 +30,29 @@ public class TaskScheduler implements TaskService {
 
 
     @Override
-    public Long scheduleTask(String className, Map<String, String> params, String executionTime, double delayBase) {
+    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase) {
+        return scheduleTask(schedulableClassName, params, executionTime, delayBase, false,
+                false, -1,-1, -1);
+    }
+
+
+    @Override
+    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase,
+                             boolean withRetry, boolean fixedRetryPolicy, double fixDelayValue, int retryCount, int upLimit) {
         ScheduledTask task = new ScheduledTask();
-        task.setCanonicalName(className);
+        task.setCanonicalName(schedulableClassName);
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
+        if (withRetry) {
+
+        }
+
         return taskRepository.save(task);
     }
 
 
     @Override
-    public void cancelTask(long id) {
+    public void cancelTask(Long id) {
 
         ScheduledTask task = taskRepository.findById(id);
 
@@ -55,5 +66,10 @@ public class TaskScheduler implements TaskService {
         } else {
             throw new RuntimeException("Cannot cancel task with id " + id + ": task not found");
         }
+    }
+
+    @Override
+    public void rescheduleTask(Long id, long delay) {
+        taskRepository.rescheduleTask(id, delay);
     }
 }

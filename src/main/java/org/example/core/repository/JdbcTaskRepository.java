@@ -6,7 +6,6 @@ import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -281,14 +280,14 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void rescheduleTask(Long id, int delay) {
+    public void rescheduleTask(Long id, long delay) {
 
         String sql = "UPDATE tasks SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setInt(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
+            preparedStatement.setLong(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
             preparedStatement.setLong(2, id);
 
             preparedStatement.executeUpdate();

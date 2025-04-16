@@ -5,15 +5,18 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.TaskRepository;
+import org.example.core.service.DatabaseTaskActions;
 import org.example.core.service.TaskScheduler;
+import org.example.core.service.TaskSchedulerService;
 import org.example.core.service.TaskService;
-import org.example.test.DoSomething;
+import org.example.core.service.delay.DelayService;
 import org.example.worker.TaskWorkerPool;
 
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +25,10 @@ public class Main {
     public static TaskRepository taskRepository;
 
     public static TaskService taskService;
+
+    public static TaskSchedulerService taskSchedulerService;
+
+    public static DelayService delayService;
 
     public static void main(String[] args) throws Exception {
 
@@ -37,7 +44,8 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
-        taskService = new TaskScheduler(taskRepository);
+        taskService = new DatabaseTaskActions(taskRepository);
+        taskSchedulerService = new TaskScheduler(taskRepository);
 
 
         Timestamp as = new Timestamp(System.currentTimeMillis());
@@ -48,14 +56,13 @@ public class Main {
         System.out.println(df.format(as));
 
 
-        taskService.scheduleTask(new DoSomething(), params, "2000-10-10 10:22:12", 1);
 
         Map<String, Integer> params2 = new HashMap<>();
         params2.put("DoSomething", 1);
         params2.put("Do", 2);
         params2.put("NotDo", 3);
 
-        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService);
+        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService, taskSchedulerService, delayService);
 
         taskWorkerPool.initWorkers(params2);
     }

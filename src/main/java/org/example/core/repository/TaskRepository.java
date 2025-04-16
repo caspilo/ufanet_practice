@@ -13,7 +13,7 @@ public interface TaskRepository {
     List<ScheduledTask> getAndLockReadyTasks();
     List<ScheduledTask> getReadyTasksByCategory(String category);
     List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
-    void rescheduleTask(Long id, int delay);
+    void rescheduleTask(Long id, long delay);
     ScheduledTask findById(Long id);
     boolean existsById(Long id);
     void startTransaction();
