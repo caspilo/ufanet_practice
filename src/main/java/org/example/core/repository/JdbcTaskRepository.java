@@ -251,14 +251,14 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void rescheduleTask(Long id, int delay) {
+    public void rescheduleTask(Long id, Long delay) {
 
         String sql = "UPDATE tasks SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setInt(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
+            preparedStatement.setLong(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
             preparedStatement.setLong(2, id);
 
             preparedStatement.executeUpdate();

@@ -2,7 +2,10 @@ package org.example.worker;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.service.TaskExecutor;
+import org.example.core.service.TaskSchedulerService;
 import org.example.core.service.TaskService;
+import org.example.core.service.delay.DelayService;
 import org.example.test.Schedulable;
 
 import java.util.List;
@@ -13,11 +16,20 @@ public class TaskWorker implements Runnable {
     private final int threadCount;
     private final TaskService taskService;
 
+    private final TaskSchedulerService taskSchedulerService;
 
-    public TaskWorker(String category, int threadCount, TaskService taskService) {
+    private final DelayService delayService;
+
+    private final TaskExecutor taskExecutor;
+
+
+    public TaskWorker(String category, int threadCount, TaskService taskService, TaskSchedulerService taskSchedulerService, DelayService delayService) {
         this.category = category;
         this.threadCount = threadCount;
         this.taskService = taskService;
+        this.taskSchedulerService = taskSchedulerService;
+        this.delayService = delayService;
+        this.taskExecutor = new TaskExecutor(taskSchedulerService, taskService, delayService);
     }
 
 
@@ -49,6 +61,7 @@ public class TaskWorker implements Runnable {
                         taskService.changeTaskStatus(task.getId(), TASK_STATUS.COMPLETED);
                     } else {
                         taskService.changeTaskStatus(task.getId(), TASK_STATUS.FAILED);
+                        taskExecutor.executeRetryPolicyForTask(task.getId());
                     }
                 }
                 taskService.commitTransaction();
@@ -58,18 +71,3 @@ public class TaskWorker implements Runnable {
         }
     }
 }
-
-//    public void executeTask(Long id) throws Exception {
-//        if(1+1==2) {
-//            taskService.changeTaskStatus(id, TASK_STATUS.COMPLETED);
-//        }else {
-//            taskService.changeTaskStatus(id,TASK_STATUS.FAILED);
-//            retryTask();
-//        }
-//    }
-//
-//    public void retryTask(){
-//}
-//    }
-
-
