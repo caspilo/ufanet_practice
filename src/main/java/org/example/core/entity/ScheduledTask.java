@@ -9,20 +9,20 @@ import java.util.Map;
 public class ScheduledTask {
 
     private Long id;
-    private String type;
+    private String category;
     private String canonicalName;
     private Map<String, String> params;
     private TASK_STATUS status = TASK_STATUS.NONE;
     private Timestamp executionTime;
     private int retryCount = 0;
 
-    public ScheduledTask(String type, Timestamp executionTime) {
-        this.type = type;
+    public ScheduledTask(String category, Timestamp executionTime) {
+        this.category = category;
         this.executionTime = executionTime;
     }
 
     public ScheduledTask() {
-        this.type = "DoSomething";
+        this.category = "DoSomething";
         this.canonicalName = "org.example.test.DoSomething";
         this.params = Map.of("ID", "123",
                 "message", "Test message");
@@ -33,7 +33,7 @@ public class ScheduledTask {
     public String toString() {
         return
                 "Task " + this.id +
-                        ": type: " + this.type +
+                        ": category: " + this.category +
                         ", status: " + this.status +
                         ", execution time: " + this.executionTime +
                         ", retry count: " + this.retryCount;
@@ -48,12 +48,12 @@ public class ScheduledTask {
         this.id = id;
     }
 
-    public String getType() {
-        return type;
+    public String getCategory() {
+        return category;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public TASK_STATUS getStatus() {

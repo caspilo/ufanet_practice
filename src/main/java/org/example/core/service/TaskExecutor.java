@@ -1,5 +1,6 @@
 package org.example.core.service;
 
+import org.example.core.entity.DelayParams;
 import org.example.core.entity.enums.TASK_STATUS;
 import org.example.core.service.delay.DelayService;
 
@@ -32,45 +33,46 @@ public class TaskExecutor {
     }
 
     private void fixedRetryPolicy(Long id) {
-        long delayValue = delayService.getFixedDelayValue(id);
-        if (delayValue >= 0) {
-            taskSchedulerService.rescheduleTask(id, delayValue);
+        long fixDelayValue = delayService.getDelayParams(id).getFixDelayValue();
+        if (fixDelayValue >= 0) {
+            taskSchedulerService.rescheduleTask(id, fixDelayValue);
         } else {
             taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
-            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + delayValue + " can`t be < 0");
+            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + fixDelayValue + " can`t be < 0");
         }
     }
 
     private void exponentialRetryPolicy(Long id, int retryCount, double delayBase, long limit) {
-        long delay = getNextDelay(retryCount, delayBase, limit);
-        if (delay >= 0) {
-            taskSchedulerService.rescheduleTask(id, delay);
+        long delayValue = getNextDelay(retryCount, delayBase, limit);
+        if (delayValue >= 0) {
+            taskSchedulerService.rescheduleTask(id, delayValue);
         } else {
             taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
-            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + delay + " can`t be > limit = " + limit);
+            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + delayValue + " can`t be > limit = " + limit);
         }
     }
 
     public boolean checkRetryForTask(Long id) {
-        return delayService.getRetryStateForTask(id);
+        return delayService.getDelayParams(id).isWithRetry();
     }
 
     public boolean isRetryPolicyForTaskFixed(Long id) {
         if (checkRetryForTask(id)) {
-            return delayService.isRetryForTaskFixed(id);
+            return delayService.getDelayParams(id).isValueIsFixed();
         } else {
             throw new RuntimeException("ERROR. Can`t get RetryPolicy. Retry for task with id: " + id + " is turned off. ");
         }
     }
 
     public void executeRetryPolicyForTask(Long id) {
+        DelayParams delayParams = delayService.getDelayParams(id);
         int retryCount = taskService.getTask(id).getRetryCount();
-        int maxRetryCount = delayService.getMaxRetryCount(id);
+        int maxRetryCount = delayParams.getRetryCount();
 
         if (checkRetryForTask(id)) {
             if (!(retryCount == maxRetryCount)) {
                 if (!isRetryPolicyForTaskFixed(id)) {
-                    exponentialRetryPolicy(id, retryCount, delayService.getDelayBase(id), delayService.getUpLimit(id));
+                    exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
                     taskService.getTask(id).setRetryCount(retryCount + 1);
                 } else {
                     fixedRetryPolicy(id);

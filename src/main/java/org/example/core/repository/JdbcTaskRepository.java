@@ -38,19 +38,19 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public Long save(ScheduledTask task) {
 
-        createTableByType(task.getType());
+        createTableByCategory(task.getCategory());
 
-        String table_name = "tasks_" + task.getType();
+        String table_name = "tasks_" + task.getCategory();
 
         String sql = "INSERT INTO ? " +
-                "(type, canonical_name, params, status, execution_time) " +
+                "(category, canonical_name, params, status, execution_time) " +
                 "VALUES (?,?,?,?,?)";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             stmt.setString(1, table_name);
-            stmt.setString(2, task.getType());
+            stmt.setString(2, task.getCategory());
             stmt.setString(3, task.getCanonicalName());
             stmt.setString(4, objectMapper.writeValueAsString(task.getParams()));
             stmt.setString(5, task.getStatus().name());
@@ -78,14 +78,14 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private void createTableByType(String type) {
+    private void createTableByCategory(String category) {
 
-        String table_name = "tasks_" + type;
+        String table_name = "tasks_" + category;
 
         String sql = """
                 CREATE TABLE IF NOT EXISTS ? (\
                 id BIGINT PRIMARY KEY AUTO_INCREMENT,\
-                    type VARCHAR(50) NOT NULL,\
+                    category VARCHAR(50) NOT NULL,\
                     canonical_name VARCHAR(255) NOT NULL,\
                     params JSON NOT NULL,\
                     status ENUM('PENDING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\
@@ -216,7 +216,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         try {
             task.setId(result.getLong(1));
-            task.setType(result.getString(2));
+            task.setCategory(result.getString(2));
             task.setCanonicalName(result.getString(3));
             task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {}));
             task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
@@ -234,7 +234,7 @@ public class JdbcTaskRepository implements TaskRepository {
     public List<ScheduledTask> getReadyTasksByCategory(String category) {
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ? LIMIT 5";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND category = ? LIMIT 5";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -259,7 +259,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ? LIMIT 5 FOR UPDATE SKIP LOCKED";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND category = ? LIMIT 5 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
