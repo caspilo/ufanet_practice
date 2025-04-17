@@ -49,25 +49,25 @@ public class TaskWorkerPool {
             String category = entry.getKey();
             int threadsCount = entry.getValue();
 
-            ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
-
-            TaskRepository taskRepository = new JdbcTaskRepository(dataSource, category);
-            DelayRepository delayRepository = new JdbcDelayRepository(dataSource, category);
-            taskRepositories.put(category, taskRepository);
-            delayRepositories.put(category, delayRepository);
-            TaskService taskService = new DatabaseTaskActions(taskRepository);
-            DelayService delayService = new DelayPolicy(delayRepository);
-            TaskSchedulerService taskScheduler = new TaskScheduler(taskRepository, delayRepository);
-
-            threadPool.submit(new TaskWorker(taskService, taskScheduler, delayService));
-            System.out.println("Init worker with category "+ category + ", with " + threadsCount + " thread(s) " + threadPool);
+            initWorker(category, threadsCount);
         }
     }
 
     public void initWorker(String category, int threadsCount) {
+
         ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
 
+        if (!taskRepositories.containsKey(category)) {
 
+            taskRepositories.put(category, new JdbcTaskRepository(dataSource, category));
+            delayRepositories.put(category, new JdbcDelayRepository(dataSource, category));
+        }
 
+        TaskService taskService = new DatabaseTaskActions(taskRepositories.get(category));
+        DelayService delayService = new DelayPolicy(delayRepositories.get(category));
+        TaskSchedulerService taskScheduler = new TaskScheduler(taskRepositories.get(category), delayRepositories.get(category));
+
+        threadPool.submit(new TaskWorker(taskService, taskScheduler, delayService));
+        System.out.println("Init worker with category " + category + ", with " + threadsCount + " thread(s) " + threadPool);
     }
 }
