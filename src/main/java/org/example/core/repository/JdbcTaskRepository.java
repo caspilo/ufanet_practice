@@ -13,17 +13,17 @@ import java.util.List;
 public class JdbcTaskRepository implements TaskRepository {
 
     private final DataSource dataSource;
-    private final String tableName;
+    private String tableName = "tasks";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     public JdbcTaskRepository(final DataSource dataSource) {
         this.dataSource = dataSource;
-        this.tableName = "tasks";
+        createTableIfNotExists();
     }
 
     public JdbcTaskRepository(final DataSource dataSource, final String category) {
-        this.dataSource = dataSource;
+        this(dataSource);
         this.tableName = "tasks_" + category;
     }
 
@@ -37,8 +37,6 @@ public class JdbcTaskRepository implements TaskRepository {
 
     @Override
     public Long save(ScheduledTask task) {
-
-        createTableByType(task.getCategory());
 
         String sql = "INSERT INTO " + tableName +
                 " (type, canonical_name, params, status, execution_time) " +
@@ -75,11 +73,9 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private void createTableByType(String type) {
+    private void createTableIfNotExists() {
 
-        String table_name = "tasks_" + type;
-
-        String sql = "CREATE TABLE IF NOT EXISTS " + table_name + " (\n" +
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (\n" +
                 "    id BIGINT PRIMARY KEY AUTO_INCREMENT,\n" +
                 "    type VARCHAR(50) NOT NULL,\n" +
                 "    canonical_name VARCHAR(255) NOT NULL,\n" +

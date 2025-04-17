@@ -9,15 +9,15 @@ public class JdbcDelayRepository implements DelayRepository {
 
     private final DataSource dataSource;
 
-    private final String tableName;
+    private String tableName = "delays";
 
     public JdbcDelayRepository(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.tableName = "delays";
+        createTableIfNotExists();
     }
 
     public JdbcDelayRepository(DataSource dataSource, String category) {
-        this.dataSource = dataSource;
+        this(dataSource);
         this.tableName = "delays_" + category;
     }
 
@@ -55,7 +55,7 @@ public class JdbcDelayRepository implements DelayRepository {
     @Override
     public void save(DelayParams delayParams) {
 
-        String sql = "INSERT INTO delays (task_id, with_retry, retry_count, is_fixed, fix_delay_value, delay_base, delay_limit)" +
+        String sql = "INSERT INTO " + tableName + " (task_id, with_retry, retry_count, is_fixed, fix_delay_value, delay_base, delay_limit)" +
                 " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = dataSource.getConnection()) {
@@ -71,9 +71,29 @@ public class JdbcDelayRepository implements DelayRepository {
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Failed to insert row into table 'delays'");
+                throw new SQLException("Failed to insert row into table " + tableName);
             }
 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void createTableIfNotExists() {
+
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (\n" +
+                "task_id BIGINT PRIMARY KEY,\n" +
+                "    with_delay BOOL NOT NULL,\n" +
+                "    retry_count INT,\n" +
+                "    is_fixed BOOL,\n" +
+                "    delay_value BIGINT,\n" +
+                "    delay_base BIGINT,\n" +
+                "    delay_limit BIGINT,\n" +
+                "    FOREIGN KEY (task_id) REFERENCES tasks (id));";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
