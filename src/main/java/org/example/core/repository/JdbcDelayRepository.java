@@ -9,10 +9,17 @@ public class JdbcDelayRepository implements DelayRepository {
 
     private final DataSource dataSource;
 
-    public JdbcDelayRepository(final DataSource dataSource) {
+    private final String tableName;
+
+    public JdbcDelayRepository(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.tableName = "delays";
     }
 
+    public JdbcDelayRepository(DataSource dataSource, String category) {
+        this.dataSource = dataSource;
+        this.tableName = "delays_" + category;
+    }
 
     @Override
     public DelayParams getDelayParams(Long taskId) {

@@ -1,4 +1,4 @@
-package org.example.core.delay;
+package org.example.core.service.delay;
 
 public class DelayCalculator {
 

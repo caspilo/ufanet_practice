@@ -3,8 +3,7 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
-import org.example.core.repository.DelayRepository;
-import org.example.core.repository.JdbcDelayRepository;
+import org.example.core.entity.ScheduledTask;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.TaskRepository;
 import org.example.core.service.DatabaseTaskActions;
@@ -18,14 +17,13 @@ import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
 
     public static TaskRepository taskRepository;
-
-    public static DelayRepository delayRepository;
 
     public static TaskService taskService;
 
@@ -47,27 +45,13 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
-        delayRepository = new JdbcDelayRepository(dataSource);
         taskService = new DatabaseTaskActions(taskRepository);
-        taskSchedulerService = new TaskScheduler(taskRepository, delayRepository);
-        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService, taskSchedulerService, delayService);
+        taskSchedulerService = new TaskScheduler(taskRepository);
 
+        ScheduledTask task = new ScheduledTask();
+        task.setType("PushNotification");
 
-        Timestamp as = new Timestamp(System.currentTimeMillis());
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String stroka = df.format(as);
-        System.out.println(Timestamp.valueOf("2000-10-10 10:22:12.99").getTime());
+        taskRepository.save(task);
 
-        System.out.println(df.format(as));
-
-
-
-        Map<String, Integer> params2 = new HashMap<>();
-        params2.put("DoSomething", 1);
-        params2.put("Do", 2);
-        params2.put("NotDo", 3);
-
-
-        taskWorkerPool.initWorkers(params2);
     }
 }

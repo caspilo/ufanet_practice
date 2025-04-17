@@ -38,23 +38,20 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public Long save(ScheduledTask task) {
 
-        createTableByCategory(task.getCategory());
+        createTableByType(task.getCategory());
 
-        String table_name = "tasks_" + task.getCategory();
-
-        String sql = "INSERT INTO ? " +
-                "(category, canonical_name, params, status, execution_time) " +
+        String sql = "INSERT INTO " + tableName +
+                " (type, canonical_name, params, status, execution_time) " +
                 "VALUES (?,?,?,?,?)";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            stmt.setString(1, table_name);
-            stmt.setString(2, task.getCategory());
-            stmt.setString(3, task.getCanonicalName());
-            stmt.setString(4, objectMapper.writeValueAsString(task.getParams()));
-            stmt.setString(5, task.getStatus().name());
-            stmt.setTimestamp(6, task.getExecutionTime());
+            stmt.setString(1, task.getCategory());
+            stmt.setString(2, task.getCanonicalName());
+            stmt.setString(3, objectMapper.writeValueAsString(task.getParams()));
+            stmt.setString(4, task.getStatus().name());
+            stmt.setTimestamp(5, task.getExecutionTime());
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -78,24 +75,21 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private void createTableByCategory(String category) {
+    private void createTableByType(String type) {
 
-        String table_name = "tasks_" + category;
+        String table_name = "tasks_" + type;
 
-        String sql = """
-                CREATE TABLE IF NOT EXISTS ? (\
-                id BIGINT PRIMARY KEY AUTO_INCREMENT,\
-                    category VARCHAR(50) NOT NULL,\
-                    canonical_name VARCHAR(255) NOT NULL,\
-                    params JSON NOT NULL,\
-                    status ENUM('PENDING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\
-                    execution_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\
-                    retry_count INT DEFAULT 0\
-                );""";
+        String sql = "CREATE TABLE IF NOT EXISTS " + table_name + " (\n" +
+                "    id BIGINT PRIMARY KEY AUTO_INCREMENT,\n" +
+                "    type VARCHAR(50) NOT NULL,\n" +
+                "    canonical_name VARCHAR(255) NOT NULL,\n" +
+                "    params JSON NOT NULL,\n" +
+                "    status ENUM('PENDING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\n" +
+                "    execution_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" +
+                "    retry_count INT DEFAULT 0\n);";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, table_name);
             stmt.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -234,7 +228,7 @@ public class JdbcTaskRepository implements TaskRepository {
     public List<ScheduledTask> getReadyTasksByCategory(String category) {
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND category = ? LIMIT 5";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ? LIMIT 5";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -259,7 +253,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND category = ? LIMIT 5 FOR UPDATE SKIP LOCKED";
+        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND type = ? LIMIT 5 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -282,12 +276,12 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public void rescheduleTask(Long id, long delay) {
 
-        String sql = "UPDATE tasks SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
+        String sql = "UPDATE " + tableName + " SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setLong(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
+            preparedStatement.setLong(1, delay * 1000);
             preparedStatement.setLong(2, id);
 
             preparedStatement.executeUpdate();
