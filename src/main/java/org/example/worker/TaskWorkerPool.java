@@ -43,8 +43,8 @@ public class TaskWorkerPool {
         this.dataSource = dataSource;
     }
 
-    public void initWorkers(Map<String,Integer> categoriesAndThreads){
-        for (Map.Entry<String, Integer> entry: categoriesAndThreads.entrySet()){
+    public void initWorkers(Map<String, Integer> categoriesAndThreads) {
+        for (Map.Entry<String, Integer> entry : categoriesAndThreads.entrySet()) {
 
             String category = entry.getKey();
             int threadsCount = entry.getValue();
