@@ -8,7 +8,6 @@ import org.example.core.service.TaskService;
 import org.example.core.service.delay.DelayService;
 import org.example.core.task.Schedulable;
 
-
 import java.util.List;
 import java.util.Map;
 
@@ -32,12 +31,7 @@ public class TaskWorker implements Runnable {
 
 
     public boolean executeTask(Schedulable task, Map<String, String> params) {
-        try {
-            task.execute(params);
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return task.execute(params);
     }
 
 

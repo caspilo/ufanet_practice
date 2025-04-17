@@ -16,11 +16,18 @@ public class DatabaseTaskActions implements TaskService {
     }
 
     public ScheduledTask getTask(Long id) {
-        return taskRepository.findById(id);
+        ScheduledTask task = taskRepository.findById(id);
+        if (task != null) {
+            return task;
+        } else {
+            throw new RuntimeException("ERROR. Can not get task with id " + id + ": task not found");
+        }
     }
 
     public void changeTaskStatus(Long id, TASK_STATUS taskStatus) {
-        taskRepository.changeTaskStatus(id, taskStatus);
+        if (!(getTask(id).getStatus().equals(taskStatus))) {
+            taskRepository.changeTaskStatus(id, taskStatus);
+        }
     }
 
     @Override
@@ -30,7 +37,7 @@ public class DatabaseTaskActions implements TaskService {
 
     @Override
     public List<ScheduledTask> getAndLockReadyTasks() {
-       return taskRepository.getAndLockReadyTasks();
+        return taskRepository.getAndLockReadyTasks();
     }
 
     public List<ScheduledTask> getReadyTasksByCategory(String category) {

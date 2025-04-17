@@ -1,10 +1,11 @@
 package org.example.core.service;
 
 import org.example.core.entity.DelayParams;
+import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 import org.example.core.service.delay.DelayService;
 
-import static org.example.core.delay.DelayCalculator.getNextDelay;
+import static org.example.core.service.delay.DelayCalculator.getNextDelay;
 
 public class TaskExecutor {
 
@@ -52,12 +53,12 @@ public class TaskExecutor {
         }
     }
 
-    public boolean checkRetryForTask(Long id) {
+    public boolean isRetryForTask(Long id) {
         return delayService.getDelayParams(id).isWithRetry();
     }
 
     public boolean isRetryPolicyForTaskFixed(Long id) {
-        if (checkRetryForTask(id)) {
+        if (isRetryForTask(id)) {
             return delayService.getDelayParams(id).isValueIsFixed();
         } else {
             throw new RuntimeException("ERROR. Can`t get RetryPolicy. Retry for task with id: " + id + " is turned off. ");
@@ -65,18 +66,18 @@ public class TaskExecutor {
     }
 
     public void executeRetryPolicyForTask(Long id) {
-        DelayParams delayParams = delayService.getDelayParams(id);
-        int retryCount = taskService.getTask(id).getRetryCount();
-        int maxRetryCount = delayParams.getRetryCount();
-
-        if (checkRetryForTask(id)) {
-            if (!(retryCount == maxRetryCount)) {
+        if (isRetryForTask(id)) {
+            DelayParams delayParams = delayService.getDelayParams(id);
+            ScheduledTask task = taskService.getTask(id);
+            int retryCount = task.getRetryCount();
+            int maxRetryCount = delayParams.getRetryCount();
+            if (retryCount <= maxRetryCount) {
                 if (!isRetryPolicyForTaskFixed(id)) {
                     exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
-                    taskService.getTask(id).setRetryCount(retryCount + 1);
+                    task.setRetryCount(retryCount + 1);
                 } else {
                     fixedRetryPolicy(id);
-                    taskService.getTask(id).setRetryCount(retryCount + 1);
+                    task.setRetryCount(retryCount + 1);
                 }
                 return;
             }
