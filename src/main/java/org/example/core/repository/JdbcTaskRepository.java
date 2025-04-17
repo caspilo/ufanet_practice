@@ -38,7 +38,7 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public Long save(ScheduledTask task) {
 
-        createTableByType(task.getType());
+        createTableByType(task.getCategory());
 
         String sql = "INSERT INTO " + tableName +
                 " (type, canonical_name, params, status, execution_time) " +
@@ -47,7 +47,7 @@ public class JdbcTaskRepository implements TaskRepository {
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            stmt.setString(1, task.getType());
+            stmt.setString(1, task.getCategory());
             stmt.setString(2, task.getCanonicalName());
             stmt.setString(3, objectMapper.writeValueAsString(task.getParams()));
             stmt.setString(4, task.getStatus().name());
@@ -210,7 +210,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         try {
             task.setId(result.getLong(1));
-            task.setType(result.getString(2));
+            task.setCategory(result.getString(2));
             task.setCanonicalName(result.getString(3));
             task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {}));
             task.setStatus(TASK_STATUS.valueOf(result.getString(5)));

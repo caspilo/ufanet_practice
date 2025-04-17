@@ -11,9 +11,13 @@ public interface TaskService {
 
     void changeTaskStatus(Long id, TASK_STATUS taskStatus);
 
+    List<ScheduledTask> getReadyTasks();
+
+    List<ScheduledTask> getAndLockReadyTasks();
+
     List<ScheduledTask> getReadyTasksByCategory(String category);
 
-    List<ScheduledTask> getAndLockReadyTasksByType(String type);
+    List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
 
     void startTransaction();
 

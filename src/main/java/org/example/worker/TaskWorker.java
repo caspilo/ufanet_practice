@@ -6,14 +6,14 @@ import org.example.core.service.TaskExecutor;
 import org.example.core.service.TaskSchedulerService;
 import org.example.core.service.TaskService;
 import org.example.core.service.delay.DelayService;
-import org.example.test.Schedulable;
+import org.example.core.task.Schedulable;
+
 
 import java.util.List;
 import java.util.Map;
 
 public class TaskWorker implements Runnable {
-    private final String category;
-    private final int threadCount;
+
     private final TaskService taskService;
 
     private final TaskSchedulerService taskSchedulerService;
@@ -23,9 +23,7 @@ public class TaskWorker implements Runnable {
     private final TaskExecutor taskExecutor;
 
 
-    public TaskWorker(String category, int threadCount, TaskService taskService, TaskSchedulerService taskSchedulerService, DelayService delayService) {
-        this.category = category;
-        this.threadCount = threadCount;
+    public TaskWorker(TaskService taskService, TaskSchedulerService taskSchedulerService, DelayService delayService) {
         this.taskService = taskService;
         this.taskSchedulerService = taskSchedulerService;
         this.delayService = delayService;
@@ -45,13 +43,11 @@ public class TaskWorker implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Initializing worker with category " + category + ", with " + threadCount + " thread(s) " +
-                Thread.currentThread());
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 Thread.sleep(5000); // периодичность получения задач из БД
                 taskService.startTransaction();
-                List<ScheduledTask> scheduledTaskList = taskService.getAndLockReadyTasksByType(category);
+                List<ScheduledTask> scheduledTaskList = taskService.getAndLockReadyTasks();
                 for (ScheduledTask task : scheduledTaskList) {
                     //taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
                     Thread.sleep(2000); // имитация процесса выполнения

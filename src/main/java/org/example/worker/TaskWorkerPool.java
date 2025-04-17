@@ -3,13 +3,15 @@ package org.example.worker;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.repository.DelayRepository;
+import org.example.core.repository.JdbcDelayRepository;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.TaskRepository;
 import org.example.core.service.DatabaseTaskActions;
 import org.example.core.service.TaskScheduler;
 import org.example.core.service.TaskSchedulerService;
 import org.example.core.service.TaskService;
-import org.example.core.service.delay.DelayProcedures;
+import org.example.core.service.delay.DelayPolicy;
 import org.example.core.service.delay.DelayService;
 
 import javax.sql.DataSource;
@@ -23,11 +25,11 @@ public class TaskWorkerPool {
 
     private final DataSource dataSource;
 
-    private final Map<String, TaskRepository> repositories = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, TaskRepository> taskRepositories = Collections.synchronizedMap(new HashMap<>());
+
+    private final Map<String, DelayRepository> delayRepositories = Collections.synchronizedMap(new HashMap<>());
 
     private static final List<ExecutorService> executorServices = new ArrayList<>();
-
-    private final DelayService delayService = new DelayProcedures();
 
     public TaskWorkerPool() {
         HikariConfig config = new HikariConfig();
@@ -46,14 +48,18 @@ public class TaskWorkerPool {
 
             String category = entry.getKey();
             int threadsCount = entry.getValue();
+
             ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
 
             TaskRepository taskRepository = new JdbcTaskRepository(dataSource, category);
-            repositories.put(category, taskRepository);
+            DelayRepository delayRepository = new JdbcDelayRepository(dataSource, category);
+            taskRepositories.put(category, taskRepository);
+            delayRepositories.put(category, delayRepository);
             TaskService taskService = new DatabaseTaskActions(taskRepository);
-            TaskSchedulerService taskScheduler = new TaskScheduler(taskRepository);
+            DelayService delayService = new DelayPolicy(delayRepository);
+            TaskSchedulerService taskScheduler = new TaskScheduler(taskRepository, delayRepository);
 
-            threadPool.submit(new TaskWorker(category, threadsCount, taskService, taskScheduler, delayService));
+            threadPool.submit(new TaskWorker(taskService, taskScheduler, delayService));
             System.out.println("Init worker with category "+ category + ", with " + threadsCount + " thread(s) " + threadPool);
         }
     }
