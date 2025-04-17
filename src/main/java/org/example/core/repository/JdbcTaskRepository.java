@@ -40,9 +40,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
         createTableByType(task.getType());
 
-        String table_name = "tasks_" + task.getType();
-
-        String sql = "INSERT INTO " + table_name +
+        String sql = "INSERT INTO " + tableName +
                 " (type, canonical_name, params, status, execution_time) " +
                 "VALUES (?,?,?,?,?)";
 
@@ -278,12 +276,12 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public void rescheduleTask(Long id, long delay) {
 
-        String sql = "UPDATE tasks SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
+        String sql = "UPDATE " + tableName + " SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-            preparedStatement.setLong(1, delay * 1000); // миллисекунда - это 1000 микросекунд х_х
+            preparedStatement.setLong(1, delay * 1000);
             preparedStatement.setLong(2, id);
 
             preparedStatement.executeUpdate();

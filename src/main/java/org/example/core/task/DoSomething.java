@@ -1,4 +1,4 @@
-package org.example.test;
+package org.example.core.task;
 
 import java.util.Map;
 
