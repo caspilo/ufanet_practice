@@ -6,7 +6,7 @@ public class DelayParams {
     private boolean withRetry = false;
     private int retryCount = 0;
     private boolean valueIsFixed = true;
-    private Long delayValue = null;
+    private Long fixDelayValue = null;
     private Long delayBase = null;
     private Long delayLimit = null;
 
@@ -14,12 +14,12 @@ public class DelayParams {
         this.taskId = taskId;
     }
 
-    public DelayParams(Long taskId, boolean withRetry, int retryCount, boolean valueIsFixed, Long delayValue, Long delayBase, Long delayLimit) {
+    public DelayParams(Long taskId, boolean withRetry, int retryCount, boolean valueIsFixed, Long fixDelayValue, Long delayBase, Long delayLimit) {
         this.taskId = taskId;
         this.withRetry = withRetry;
         this.retryCount = retryCount;
         this.valueIsFixed = valueIsFixed;
-        this.delayValue = delayValue;
+        this.fixDelayValue = fixDelayValue;
         this.delayBase = delayBase;
         this.delayLimit = delayLimit;
     }
@@ -57,12 +57,12 @@ public class DelayParams {
         this.valueIsFixed = valueIsFixed;
     }
 
-    public Long getDelayValue() {
-        return delayValue;
+    public Long getFixDelayValue() {
+        return fixDelayValue;
     }
 
-    public void setDelayValue(Long delayValue) {
-        this.delayValue = delayValue;
+    public void setFixDelayValue(Long fixDelayValue) {
+        this.fixDelayValue = fixDelayValue;
     }
 
     public Long getDelayBase() {

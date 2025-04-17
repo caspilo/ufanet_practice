@@ -3,6 +3,8 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.repository.DelayRepository;
+import org.example.core.repository.JdbcDelayRepository;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.TaskRepository;
 import org.example.core.service.DatabaseTaskActions;
@@ -16,13 +18,14 @@ import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
 
     public static TaskRepository taskRepository;
+
+    public static DelayRepository delayRepository;
 
     public static TaskService taskService;
 
@@ -44,8 +47,10 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         taskRepository = new JdbcTaskRepository(dataSource);
+        delayRepository = new JdbcDelayRepository(dataSource);
         taskService = new DatabaseTaskActions(taskRepository);
-        taskSchedulerService = new TaskScheduler(taskRepository);
+        taskSchedulerService = new TaskScheduler(taskRepository, delayRepository);
+        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService, taskSchedulerService, delayService);
 
 
         Timestamp as = new Timestamp(System.currentTimeMillis());
@@ -62,7 +67,6 @@ public class Main {
         params2.put("Do", 2);
         params2.put("NotDo", 3);
 
-        TaskWorkerPool taskWorkerPool = new TaskWorkerPool(taskService, taskSchedulerService, delayService);
 
         taskWorkerPool.initWorkers(params2);
     }

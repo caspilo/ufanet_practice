@@ -1,16 +1,8 @@
 package org.example.core.service.delay;
 
+import org.example.core.entity.DelayParams;
+
 public interface DelayService {
 
-    boolean getRetryStateForTask(Long id);
-
-    long getFixedDelayValue(Long id);
-
-    boolean isRetryForTaskFixed(Long id);
-
-    int getMaxRetryCount(Long id);
-
-    double getDelayBase(Long id);
-
-    long getUpLimit(Long id);
+    DelayParams getDelayParams(Long taskId);
 }

@@ -30,7 +30,7 @@ public class JdbcDelayRepository implements DelayRepository {
                     delayParams.setWithRetry(result.getBoolean("with_retry"));
                     delayParams.setRetryCount(result.getInt("retry_count"));
                     delayParams.setValueIsFixed(result.getBoolean("value_is_fixed"));
-                    delayParams.setDelayValue(result.getLong("delay_value"));
+                    delayParams.setFixDelayValue(result.getLong("fix_delay_value"));
                     delayParams.setDelayBase(result.getLong("delay_base"));
                     delayParams.setDelayLimit(result.getLong("delay_limit"));
                     return delayParams;
@@ -48,7 +48,7 @@ public class JdbcDelayRepository implements DelayRepository {
     @Override
     public void save(DelayParams delayParams) {
 
-        String sql = "INSERT INTO delays (task_id, with_delay, retry_count, is_fixed, delay_value, delay_base, delay_limit)" +
+        String sql = "INSERT INTO delays (task_id, with_retry, retry_count, is_fixed, fix_delay_value, delay_base, delay_limit)" +
                 " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = dataSource.getConnection()) {
@@ -58,7 +58,7 @@ public class JdbcDelayRepository implements DelayRepository {
             stmt.setBoolean(2, delayParams.isWithRetry());
             stmt.setInt(3, delayParams.getRetryCount());
             stmt.setBoolean(4, delayParams.isValueIsFixed());
-            stmt.setLong(5, delayParams.getDelayValue());
+            stmt.setLong(5, delayParams.getFixDelayValue());
             stmt.setLong(6, delayParams.getDelayBase());
             stmt.setLong(7, delayParams.getDelayLimit());
 

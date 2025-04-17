@@ -8,14 +8,14 @@ public interface TaskSchedulerService {
 
     void cancelTask(Long id);
 
-    Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime, double delayBase);
+    Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime);
 
-    Long scheduleTask(Class schedulableClass, Map<String, String> params, String executionTime, double delayBase);
+    Long scheduleTask(Class schedulableClass, Map<String, String> params, String executionTime);
 
-    Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase);
+    Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime);
 
-    Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, double delayBase,
-                      boolean withRetry, boolean fixedRetryPolicy, double fixDelayValue, int retryCount, int upLimit);
+    Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
+                      boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
 
     void rescheduleTask(Long id, long delay);
 }
