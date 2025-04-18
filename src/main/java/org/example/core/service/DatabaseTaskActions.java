@@ -31,6 +31,11 @@ public class DatabaseTaskActions implements TaskService {
     }
 
     @Override
+    public void increaseRetryCountForTask(Long id) {
+        taskRepository.increaseRetryCountForTask(id);
+    }
+
+    @Override
     public List<ScheduledTask> getReadyTasks() {
         return taskRepository.getReadyTasks();
     }

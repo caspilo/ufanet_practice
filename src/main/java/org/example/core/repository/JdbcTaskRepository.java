@@ -148,6 +148,25 @@ public class JdbcTaskRepository implements TaskRepository {
         }
     }
 
+    @Override
+    public void increaseRetryCountForTask(Long id) {
+
+        String sql = "UPDATE " + tableName + " SET retry_count = retry_count + 1 WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+
+            stmt.setLong(1, id);
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Failed to increase retry count for task with ID: " + id);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public void startTransaction() {
@@ -235,7 +254,8 @@ public class JdbcTaskRepository implements TaskRepository {
             task.setId(result.getLong(1));
             task.setCategory(result.getString(2));
             task.setCanonicalName(result.getString(3));
-            task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {}));
+            task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {
+            }));
             task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
             task.setExecutionTime(result.getTimestamp(6));
             task.setRetryCount(result.getInt(7));

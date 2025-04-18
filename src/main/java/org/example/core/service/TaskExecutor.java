@@ -74,11 +74,10 @@ public class TaskExecutor {
             if (retryCount <= maxRetryCount) {
                 if (!isRetryPolicyForTaskFixed(id)) {
                     exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
-                    task.setRetryCount(retryCount + 1);
                 } else {
                     fixedRetryPolicy(id);
-                    task.setRetryCount(retryCount + 1);
                 }
+                taskService.increaseRetryCountForTask(id);
                 return;
             }
         }
