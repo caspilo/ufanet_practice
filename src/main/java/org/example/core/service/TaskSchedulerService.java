@@ -9,13 +9,13 @@ public interface TaskSchedulerService {
 
     void cancelTask(Long id);
 
-    Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime);
+    void scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime);
 
-    Long scheduleTask(Class schedulableClass, Map<String, String> params, String executionTime);
+    void scheduleTask(Class schedulableClass, Map<String, String> params, String executionTime);
 
-    Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime);
+    void scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime);
 
-    Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
+    void scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                       boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
 
     void rescheduleTask(Long id, long delay);

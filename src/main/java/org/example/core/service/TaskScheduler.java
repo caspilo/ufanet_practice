@@ -24,26 +24,26 @@ public class TaskScheduler implements TaskSchedulerService {
 
 
     @Override
-    public Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime) {
-        return scheduleTask(schedulableClass.getClass(), params, executionTime);
+    public void scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime) {
+        scheduleTask(schedulableClass.getClass(), params, executionTime);
     }
 
 
     @Override
-    public Long scheduleTask(Class objectClass, Map<String, String> params, String executionTime) {
-        return scheduleTask(objectClass.getName(), params, executionTime);
+    public void scheduleTask(Class objectClass, Map<String, String> params, String executionTime) {
+        scheduleTask(objectClass.getName(), params, executionTime);
     }
 
 
     @Override
-    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime) {
-        return scheduleTask(schedulableClassName, params, executionTime, false,
+    public void scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime) {
+        scheduleTask(schedulableClassName, params, executionTime, false,
                 false, 0L, 0L, 0, 0L);
     }
 
 
     @Override
-    public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
+    public void scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                              boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit) {
         ScheduledTask task = new ScheduledTask();
         try {
@@ -54,7 +54,7 @@ public class TaskScheduler implements TaskSchedulerService {
             task.setCanonicalName(schedulableClassName);
             task.setParams(params);
             task.setExecutionTime(Timestamp.valueOf(executionTime));
-
+            task.setId(taskRepository.save(task));
             if (withRetry) {
                 if (maxRetryCount < 0) {
                     throw new RuntimeException("ERROR. Incorrect value for parameter maxRetryCount = " + maxRetryCount + ". Value can`t be < 0");
@@ -68,23 +68,18 @@ public class TaskScheduler implements TaskSchedulerService {
                 if (fixDelayValue < 0) {
                     throw new RuntimeException("ERROR. Incorrect value for parameter fixDelayValue = " + fixDelayValue + ". Value can`t be < 0");
                 }
-
                 DelayParams delayParams = new DelayParams(task.getId());
                 delayParams.setRetryCount(maxRetryCount);
                 delayParams.setDelayLimit(delayLimit);
-                if (fixedRetryPolicy) {
-                    delayParams.setFixDelayValue(fixDelayValue);
-                } else {
-                    delayParams.setDelayBase(delayBase);
-                }
+                delayParams.setFixDelayValue(fixDelayValue);
+                delayParams.setDelayBase(delayBase);
+                delayParams.setWithRetry(withRetry);
                 delayRepository.save(delayParams);
             }
-
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
                  ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return taskRepository.save(task);
     }
 
 
