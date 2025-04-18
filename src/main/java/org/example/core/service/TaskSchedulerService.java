@@ -15,6 +15,12 @@ public interface TaskSchedulerService {
 
     Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime);
 
+    Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime, boolean withRetry,
+                      boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
+
+    Long scheduleTask(Class objectClass, Map<String, String> params, String executionTime, boolean withRetry,
+                      boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
+
     Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                       boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
 

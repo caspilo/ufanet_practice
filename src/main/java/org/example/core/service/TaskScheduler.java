@@ -43,6 +43,20 @@ public class TaskScheduler implements TaskSchedulerService {
 
 
     @Override
+    public Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime, boolean withRetry,
+                             boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit){
+        return scheduleTask(schedulableClass.getClass(), params, executionTime, withRetry, fixedRetryPolicy, delayBase, fixDelayValue, maxRetryCount, delayLimit);
+    }
+
+
+    @Override
+    public Long scheduleTask(Class objectClass, Map<String, String> params, String executionTime, boolean withRetry,
+                             boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit) {
+        return scheduleTask(objectClass.getName(), params, executionTime, withRetry, fixedRetryPolicy, delayBase, fixDelayValue, maxRetryCount, delayLimit);
+    }
+
+
+    @Override
     public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                              boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit) {
         ScheduledTask task = new ScheduledTask();
@@ -103,6 +117,7 @@ public class TaskScheduler implements TaskSchedulerService {
             throw new RuntimeException("Cannot cancel task with id " + id + ": task not found");
         }
     }
+
 
     @Override
     public void rescheduleTask(Long id, long delay) {
