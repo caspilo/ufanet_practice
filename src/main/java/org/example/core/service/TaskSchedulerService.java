@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface TaskSchedulerService {
 
-    void cancelTask(Long id);
+    void cancelTask(Long id, String category);
 
     Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime);
 
@@ -24,5 +24,5 @@ public interface TaskSchedulerService {
     Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                       boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
 
-    void rescheduleTask(Long id, long delay);
+    void rescheduleTask(Long id, String category, long delay);
 }
