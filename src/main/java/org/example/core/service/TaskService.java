@@ -13,6 +13,8 @@ public interface TaskService {
 
     void increaseRetryCountForTask(Long id);
 
+    void rescheduleTask(Long id, long delay);
+
     List<ScheduledTask> getReadyTasks();
 
     List<ScheduledTask> getAndLockReadyTasks();

@@ -36,6 +36,16 @@ public class DatabaseTaskActions implements TaskService {
     }
 
     @Override
+    public void rescheduleTask(Long id, long delay) {
+        if (delay >= 0) {
+            taskRepository.rescheduleTask(id, delay);
+            taskRepository.changeTaskStatus(id, TASK_STATUS.PENDING);
+        } else {
+            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay < 0");
+        }
+    }
+
+    @Override
     public List<ScheduledTask> getReadyTasks() {
         return taskRepository.getReadyTasks();
     }
