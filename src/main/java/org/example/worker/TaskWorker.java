@@ -3,7 +3,6 @@ package org.example.worker;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 import org.example.core.service.TaskExecutor;
-import org.example.core.service.TaskSchedulerService;
 import org.example.core.service.TaskService;
 import org.example.core.service.delay.DelayService;
 import org.example.core.task.Schedulable;
@@ -15,18 +14,12 @@ public class TaskWorker implements Runnable {
 
     private final TaskService taskService;
 
-    private final TaskSchedulerService taskSchedulerService;
-
-    private final DelayService delayService;
-
     private final TaskExecutor taskExecutor;
 
 
-    public TaskWorker(TaskService taskService, TaskSchedulerService taskSchedulerService, DelayService delayService) {
+    public TaskWorker(TaskService taskService, DelayService delayService) {
         this.taskService = taskService;
-        this.taskSchedulerService = taskSchedulerService;
-        this.delayService = delayService;
-        this.taskExecutor = new TaskExecutor(taskSchedulerService, taskService, delayService);
+        this.taskExecutor = new TaskExecutor(taskService, delayService);
     }
 
 
@@ -43,14 +36,13 @@ public class TaskWorker implements Runnable {
                 taskService.startTransaction();
                 List<ScheduledTask> scheduledTaskList = taskService.getAndLockReadyTasks();
                 for (ScheduledTask task : scheduledTaskList) {
-                    //taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
+                    taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
                     Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(task.getCanonicalName()).getDeclaredConstructor().newInstance();
                     //System.out.println("Worker " + this.hashCode() + ", task " + task.getId() + ": ");
                     if (executeTask(taskClass, task.getParams())) {
                         taskService.changeTaskStatus(task.getId(), TASK_STATUS.COMPLETED);
                     } else {
-                        taskService.changeTaskStatus(task.getId(), TASK_STATUS.FAILED);
                         taskExecutor.executeRetryPolicyForTask(task.getId());
                     }
                 }
