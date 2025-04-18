@@ -84,7 +84,7 @@ public class JdbcDelayRepository implements DelayRepository {
 
         String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (\n" +
                 "task_id BIGINT PRIMARY KEY,\n" +
-                "    with_delay BOOL NOT NULL,\n" +
+                "    with_retry BOOL NOT NULL,\n" +
                 "    retry_count INT,\n" +
                 "    is_fixed BOOL,\n" +
                 "    delay_value BIGINT,\n" +
