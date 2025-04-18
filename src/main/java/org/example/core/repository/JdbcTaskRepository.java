@@ -23,8 +23,9 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     public JdbcTaskRepository(final DataSource dataSource, final String category) {
-        this(dataSource);
+        this.dataSource = dataSource;
         this.tableName = "tasks_" + category;
+        createTableIfNotExists();
     }
 
 
