@@ -11,6 +11,8 @@ public interface TaskService {
 
     void changeTaskStatus(Long id, TASK_STATUS taskStatus);
 
+    void increaseRetryCountForTask(Long id);
+
     List<ScheduledTask> getReadyTasks();
 
     List<ScheduledTask> getAndLockReadyTasks();

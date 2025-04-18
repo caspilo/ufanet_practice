@@ -23,7 +23,7 @@ public class JdbcDelayRepository implements DelayRepository {
     @Override
     public DelayParams getDelayParams(Long taskId) {
 
-        String sql = "SELECT * FROM delays WHERE task_id = ?";
+        String sql = "SELECT * FROM " + tableName + " WHERE task_id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -54,7 +54,7 @@ public class JdbcDelayRepository implements DelayRepository {
     @Override
     public void save(DelayParams delayParams) {
 
-        String sql = "INSERT INTO " + tableName + " (task_id, with_retry, retry_count, is_fixed, fix_delay_value, delay_base, delay_limit)" +
+        String sql = "INSERT INTO " + tableName + " (task_id, with_retry, retry_count, value_is_fixed, fix_delay_value, delay_base, delay_limit)" +
                 " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = dataSource.getConnection()) {
@@ -84,7 +84,7 @@ public class JdbcDelayRepository implements DelayRepository {
                 "task_id BIGINT PRIMARY KEY,\n" +
                 "    with_retry BOOL NOT NULL,\n" +
                 "    retry_count INT,\n" +
-                "    is_fixed BOOL,\n" +
+                "    value_is_fixed BOOL,\n" +
                 "    fix_delay_value BIGINT,\n" +
                 "    delay_base BIGINT,\n" +
                 "    delay_limit BIGINT,\n" +
