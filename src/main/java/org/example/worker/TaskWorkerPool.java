@@ -25,22 +25,26 @@ public class TaskWorkerPool {
 
     private final DataSource dataSource;
 
-    private final Map<String, TaskRepository> taskRepositories = Collections.synchronizedMap(new HashMap<>());
+    public static final Map<String, TaskRepository> taskRepositories = Collections.synchronizedMap(new HashMap<>());
 
-    private final Map<String, DelayRepository> delayRepositories = Collections.synchronizedMap(new HashMap<>());
+    public static final Map<String, DelayRepository> delayRepositories = Collections.synchronizedMap(new HashMap<>());
 
     private static final List<ExecutorService> executorServices = new ArrayList<>();
 
-    public TaskWorkerPool() {
+    private final TaskSchedulerService taskScheduler;
+
+    public TaskWorkerPool(TaskSchedulerService taskScheduler) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DataSourceConfig.jdbcUrl);
         config.setUsername(DataSourceConfig.username);
         config.setPassword(DataSourceConfig.password);
         this.dataSource = new HikariDataSource(config);
+        this.taskScheduler = taskScheduler;
     }
 
-    public TaskWorkerPool(DataSource dataSource) {
+    public TaskWorkerPool(DataSource dataSource, TaskSchedulerService taskScheduler) {
         this.dataSource = dataSource;
+        this.taskScheduler = taskScheduler;
     }
 
     public void initWorkers(Map<String, Integer> categoriesAndThreads) {
@@ -65,7 +69,6 @@ public class TaskWorkerPool {
 
         TaskService taskService = new DatabaseTaskActions(taskRepositories.get(category));
         DelayService delayService = new DelayPolicy(delayRepositories.get(category));
-        TaskSchedulerService taskScheduler = new TaskScheduler(taskRepositories.get(category), delayRepositories.get(category));
 
         threadPool.submit(new TaskWorker(taskService, taskScheduler, delayService));
         System.out.println("Init worker with category " + category + ", with " + threadsCount + " thread(s) " + threadPool);

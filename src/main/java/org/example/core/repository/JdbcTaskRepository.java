@@ -20,12 +20,14 @@ public class JdbcTaskRepository implements TaskRepository {
     public JdbcTaskRepository(final DataSource dataSource) {
         this.dataSource = dataSource;
         createTableIfNotExists();
+        createUpdateEvent();
     }
 
     public JdbcTaskRepository(final DataSource dataSource, final String category) {
         this.dataSource = dataSource;
         this.tableName = "tasks_" + category;
         createTableIfNotExists();
+        createUpdateEvent();
     }
 
 
@@ -88,6 +90,30 @@ public class JdbcTaskRepository implements TaskRepository {
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void createUpdateEvent() {
+
+        String sql1 = "CREATE EVENT auto_update_" + tableName +
+                " ON SCHEDULE EVERY 1 MINUTE" +
+                " DO" +
+                " UPDATE " + tableName +
+                " SET status = 'READY'" +
+                " WHERE execution_time <= NOW()" +
+                " AND status IN ('READY', 'NONE');";
+
+        String sql2 = "SET GLOBAL event_scheduler = ON";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt1 = connection.prepareStatement(sql1);
+            stmt1.executeUpdate();
+
+            PreparedStatement stmt2 = connection.prepareStatement(sql2);
+            stmt2.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
