@@ -17,8 +17,9 @@ public class JdbcDelayRepository implements DelayRepository {
     }
 
     public JdbcDelayRepository(DataSource dataSource, String category) {
-        this(dataSource);
+        this.dataSource = dataSource;
         this.tableName = "delays_" + category;
+        createTableIfNotExists();
     }
 
     @Override

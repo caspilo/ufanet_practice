@@ -50,6 +50,7 @@ public class TaskScheduler implements TaskSchedulerService {
             if (!(Class.forName(schedulableClassName).getDeclaredConstructor().newInstance() instanceof Schedulable)) {
                 throw new RuntimeException("ERROR. Class with name :" + schedulableClassName + " does not implements class with name: " + Schedulable.class.getName());
             }
+            task.setCategory(Class.forName(schedulableClassName).getSimpleName());
             task.setCanonicalName(schedulableClassName);
             task.setParams(params);
             task.setExecutionTime(Timestamp.valueOf(executionTime));
