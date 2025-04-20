@@ -115,16 +115,14 @@ public class TaskScheduler implements TaskSchedulerService {
                 }
 
                 DelayParams delayParams = new DelayParams(task.getId());
+                delayParams.setWithRetry(withRetry);
+                delayParams.setValueIsFixed(fixedRetryPolicy);
                 delayParams.setRetryCount(maxRetryCount);
                 delayParams.setDelayLimit(delayLimit);
-                if (fixedRetryPolicy) {
-                    delayParams.setFixDelayValue(fixDelayValue);
-                } else {
-                    delayParams.setDelayBase(delayBase);
-                }
+                delayParams.setFixDelayValue(fixDelayValue);
+                delayParams.setDelayBase(delayBase);
                 delayRepository.save(delayParams);
             }
-
             return id;
 
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
@@ -132,7 +130,6 @@ public class TaskScheduler implements TaskSchedulerService {
             throw new RuntimeException(e);
         }
     }
-
 
     @Override
     public void cancelTask(Long id, String category) {
@@ -148,18 +145,6 @@ public class TaskScheduler implements TaskSchedulerService {
             }
         } else {
             throw new RuntimeException("Cannot cancel task with id " + id + ": task not found");
-        }
-    }
-
-
-    @Override
-    public void rescheduleTask(Long id, String category, long delay) {
-        setRepositories(category);
-        if (delay >= 0) {
-            taskRepository.rescheduleTask(id, delay);
-            taskRepository.changeTaskStatus(id, TASK_STATUS.PENDING);
-        } else {
-            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay < 0");
         }
     }
 }

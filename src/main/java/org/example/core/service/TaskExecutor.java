@@ -9,34 +9,19 @@ import static org.example.core.service.delay.DelayCalculator.getNextDelay;
 
 public class TaskExecutor {
 
-    private final TaskSchedulerService taskSchedulerService;
-
     private final TaskService taskService;
 
     private final DelayService delayService;
 
-    public TaskExecutor(TaskSchedulerService taskSchedulerService, TaskService taskService, DelayService delayService) {
-        this.taskSchedulerService = taskSchedulerService;
+    public TaskExecutor(TaskService taskService, DelayService delayService) {
         this.taskService = taskService;
         this.delayService = delayService;
-    }
-
-    private boolean delayTask(Long id, int retryCount) {
-
-        long delay = getNextDelay(retryCount);
-
-        if (delay > 0) {
-            taskSchedulerService.rescheduleTask(id, delay);
-        } else {
-            taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
-        }
-        return false;
     }
 
     private void fixedRetryPolicy(Long id) {
         long fixDelayValue = delayService.getDelayParams(id).getFixDelayValue();
         if (fixDelayValue >= 0) {
-            taskSchedulerService.rescheduleTask(id, fixDelayValue);
+            taskService.rescheduleTask(id, fixDelayValue);
         } else {
             taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + fixDelayValue + " can`t be < 0");
@@ -46,7 +31,7 @@ public class TaskExecutor {
     private void exponentialRetryPolicy(Long id, int retryCount, double delayBase, long limit) {
         long delayValue = getNextDelay(retryCount, delayBase, limit);
         if (delayValue >= 0) {
-            taskSchedulerService.rescheduleTask(id, delayValue);
+            taskService.rescheduleTask(id, delayValue);
         } else {
             taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + delayValue + " can`t be > limit = " + limit);
@@ -71,7 +56,7 @@ public class TaskExecutor {
             ScheduledTask task = taskService.getTask(id);
             int retryCount = task.getRetryCount();
             int maxRetryCount = delayParams.getRetryCount();
-            if (retryCount <= maxRetryCount) {
+            if (retryCount < maxRetryCount) {
                 if (!isRetryPolicyForTaskFixed(id)) {
                     exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
                 } else {

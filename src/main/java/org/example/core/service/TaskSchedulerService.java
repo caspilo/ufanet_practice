@@ -23,6 +23,4 @@ public interface TaskSchedulerService {
 
     Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                       boolean fixedRetryPolicy, Long fixDelayValue, Long delayBase, int retryCount, Long delayLimit);
-
-    void rescheduleTask(Long id, String category, long delay);
 }
