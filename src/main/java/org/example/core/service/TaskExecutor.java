@@ -1,10 +1,12 @@
 package org.example.core.service;
 
-import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.service.delay.DelayService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.example.core.service.delay.DelayCalculator.getNextDelay;
 
@@ -13,6 +15,8 @@ public class TaskExecutor {
     private final TaskService taskService;
 
     private final DelayService delayService;
+    Map<Long, Boolean> isTaskRescheduled = new HashMap<>();
+
 
     public TaskExecutor(TaskService taskService, DelayService delayService) {
         this.taskService = taskService;
@@ -39,6 +43,14 @@ public class TaskExecutor {
         }
     }
 
+    private void applyRetryPolicy(Long id, int retryCount, DelayParams delayParams, String category) {
+        if (!isRetryPolicyForTaskFixed(id, category)) {
+            exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit(), category);
+        } else {
+            fixedRetryPolicy(id, category);
+        }
+    }
+
     public boolean isRetryForTask(Long id, String category) {
         return delayService.getDelayParams(id, category).isWithRetry();
     }
@@ -52,21 +64,27 @@ public class TaskExecutor {
     }
 
     public void executeRetryPolicyForTask(Long id, String category) {
-        if (isRetryForTask(id, category)) {
-            DelayParams delayParams = delayService.getDelayParams(id, category);
+        taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
+        DelayParams delayParams = delayService.getDelayParams(id, category);
+        if (delayParams.isWithRetry()) {
             ScheduledTask task = taskService.getTask(id, category);
             int retryCount = task.getRetryCount();
             int maxRetryCount = delayParams.getRetryCount();
-            if (retryCount < maxRetryCount) {
-                if (!isRetryPolicyForTaskFixed(id, category)) {
-                    exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit(), category);
-                } else {
-                    fixedRetryPolicy(id, category);
+            if (isTaskRescheduled.containsKey(id)) {
+                if (isTaskRescheduled.get(id).equals(true)) {
+
+                    if (retryCount < maxRetryCount - 1) {
+                        applyRetryPolicy(id, retryCount, delayParams, category);
+                        taskService.increaseRetryCountForTask(id, category);
+                    } else {
+                        taskService.increaseRetryCountForTask(id, category);
+                        taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
+                    }
+                    return;
                 }
-                taskService.increaseRetryCountForTask(id, category);
-                return;
             }
+            isTaskRescheduled.put(id, true);
+            applyRetryPolicy(id, retryCount, delayParams, category);
         }
-        taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
     }
 }

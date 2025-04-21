@@ -39,7 +39,6 @@ public class TaskWorker implements Runnable {
                 taskService.startTransaction();
                 List<ScheduledTask> scheduledTaskList = taskService.getAndLockReadyTasksByCategory(category);
                 for (ScheduledTask task : scheduledTaskList) {
-                    taskService.changeTaskStatus(task.getId(), TaskStatus.PROCESSING, category);
                     Thread.sleep(2000);
                     Schedulable taskClass = (Schedulable) Class.forName(task.getCanonicalName()).getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, task.getParams())) {
