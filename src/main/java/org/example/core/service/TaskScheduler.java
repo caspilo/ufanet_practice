@@ -10,8 +10,9 @@ import org.example.core.repository.DelayRepository;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.JdbcDelayRepository;
 import org.example.core.repository.TaskRepository;
+import org.example.core.service.delay.DelayPolicy;
+import org.example.core.service.delay.DelayService;
 import org.example.core.task.Schedulable;
-import org.example.worker.TaskWorkerPool;
 
 import javax.sql.DataSource;
 import java.lang.reflect.InvocationTargetException;
@@ -22,31 +23,26 @@ public class TaskScheduler implements TaskSchedulerService {
 
     private final DataSource dataSource;
 
-    private static TaskRepository taskRepository;
+    private final TaskService taskService;
 
-    private static DelayRepository delayRepository;
+    private final DelayService delayService;
 
     public TaskScheduler(){
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DataSourceConfig.jdbcUrl);
         config.setUsername(DataSourceConfig.username);
         config.setPassword(DataSourceConfig.password);
-        this.dataSource = new HikariDataSource(config);
+        dataSource = new HikariDataSource(config);
+        this.taskService = new DatabaseTaskActions(new JdbcTaskRepository(dataSource));
+        this.delayService = new DelayPolicy(new JdbcDelayRepository(dataSource));
     }
 
     public TaskScheduler(DataSource dataSource){
         this.dataSource = dataSource;
+        this.taskService = new DatabaseTaskActions(new JdbcTaskRepository(dataSource));
+        this.delayService = new DelayPolicy(new JdbcDelayRepository(dataSource));
     }
 
-    private void setRepositories(String category) {
-        if (!TaskWorkerPool.taskRepositories.containsKey(category)) {
-            TaskWorkerPool.taskRepositories.put(category, new JdbcTaskRepository(dataSource, category));
-            TaskWorkerPool.delayRepositories.put(category, new JdbcDelayRepository(dataSource, category));
-        }
-
-        taskRepository = TaskWorkerPool.taskRepositories.get(category);
-        delayRepository = TaskWorkerPool.delayRepositories.get(category);
-    }
 
     @Override
     public Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime) {
@@ -91,13 +87,12 @@ public class TaskScheduler implements TaskSchedulerService {
             ScheduledTask task = new ScheduledTask();
 
             String category = Class.forName(schedulableClassName).getSimpleName();
-            setRepositories(category);
 
             task.setCategory(category);
             task.setCanonicalName(schedulableClassName);
             task.setParams(params);
             task.setExecutionTime(Timestamp.valueOf(executionTime));
-            Long id = taskRepository.save(task);
+            Long id = taskService.save(task, category);
             task.setId(id);
 
             if (withRetry) {
@@ -121,7 +116,7 @@ public class TaskScheduler implements TaskSchedulerService {
                 delayParams.setDelayLimit(delayLimit);
                 delayParams.setFixDelayValue(fixDelayValue);
                 delayParams.setDelayBase(delayBase);
-                delayRepository.save(delayParams);
+                delayService.save(delayParams, category);
             }
             return id;
 
@@ -131,15 +126,15 @@ public class TaskScheduler implements TaskSchedulerService {
         }
     }
 
+
     @Override
     public void cancelTask(Long id, String category) {
 
-        setRepositories(category);
-        ScheduledTask task = taskRepository.findById(id);
+        ScheduledTask task = taskService.findById(id, category);
 
         if (task != null) {
             if (task.getStatus() == TaskStatus.PENDING) {
-                taskRepository.cancelTask(id);
+                taskService.cancelTask(id, category);
             } else {
                 throw new RuntimeException("Cannot cancel task with id " + id + ": task status is " + task.getStatus().name());
             }

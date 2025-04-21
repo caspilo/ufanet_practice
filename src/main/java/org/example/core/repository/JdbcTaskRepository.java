@@ -2,6 +2,9 @@ package org.example.core.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.example.config.DataSourceConfig;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 
@@ -13,35 +16,36 @@ import java.util.List;
 public class JdbcTaskRepository implements TaskRepository {
 
     private final DataSource dataSource;
-    private String tableName = "tasks";
+    private final String tableName = "tasks_";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public JdbcTaskRepository() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(DataSourceConfig.jdbcUrl);
+        config.setUsername(DataSourceConfig.username);
+        config.setPassword(DataSourceConfig.password);
+        dataSource = new HikariDataSource(config);
+    }
 
     public JdbcTaskRepository(final DataSource dataSource) {
         this.dataSource = dataSource;
-        createTableIfNotExists();
-        createUpdateEvent();
-    }
-
-    public JdbcTaskRepository(final DataSource dataSource, final String category) {
-        this.dataSource = dataSource;
-        this.tableName = "tasks_" + category;
-        createTableIfNotExists();
-        createUpdateEvent();
     }
 
 
     @Override
-    public boolean existsById(Long id) {
+    public boolean existsById(Long id, String category) {
 
-        return findById(id) != null;
+        return findById(id, category) != null;
     }
 
 
     @Override
-    public Long save(ScheduledTask task) {
+    public Long save(ScheduledTask task, String category) {
 
-        String sql = "INSERT INTO " + tableName +
+        createTableIfNotExists(category);
+        createUpdateEvent(category);
+
+        String sql = "INSERT INTO " + tableName + category +
                 " (category, canonical_name, params, status, execution_time) " +
                 "VALUES (?,?,?,?,?)";
 
@@ -56,7 +60,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Failed to insert row into " + tableName);
+                throw new SQLException("Failed to insert row into " + tableName + category);
             }
 
             try {
@@ -76,9 +80,9 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private void createTableIfNotExists() {
+    private void createTableIfNotExists(String category) {
 
-        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (\n" +
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + category + " (\n" +
                 "    id BIGINT PRIMARY KEY AUTO_INCREMENT,\n" +
                 "    category VARCHAR(50) NOT NULL,\n" +
                 "    canonical_name VARCHAR(255) NOT NULL,\n" +
@@ -96,9 +100,9 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private void createUpdateEvent() {
+    private void createUpdateEvent(String category) {
 
-        String sql1 = "CREATE EVENT IF NOT EXISTS auto_update_" + tableName +
+        String sql1 = "CREATE EVENT IF NOT EXISTS auto_update_" + tableName + category +
                 " ON SCHEDULE EVERY 1 MINUTE" +
                 " DO" +
                 " UPDATE " + tableName +
@@ -121,16 +125,16 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void cancelTask(Long id) {
+    public void cancelTask(Long id, String category) {
 
-        changeTaskStatus(id, TaskStatus.CANCELED);
+        changeTaskStatus(id, TaskStatus.CANCELED, category);
     }
 
 
     @Override
-    public void changeTaskStatus(Long id, TaskStatus status) {
+    public void changeTaskStatus(Long id, TaskStatus status, String category) {
 
-        String sql = "UPDATE " + tableName + " SET status = ? WHERE id = ?";
+        String sql = "UPDATE " + tableName + category + " SET status = ? WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -148,10 +152,11 @@ public class JdbcTaskRepository implements TaskRepository {
         }
     }
 
-    @Override
-    public void increaseRetryCountForTask(Long id) {
 
-        String sql = "UPDATE " + tableName + " SET retry_count = retry_count + 1 WHERE id = ?";
+    @Override
+    public void increaseRetryCountForTask(Long id, String category) {
+
+        String sql = "UPDATE " + tableName + category + " SET retry_count = retry_count + 1 WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -200,52 +205,6 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    @Override
-    public List<ScheduledTask> getReadyTasks() {
-
-        List<ScheduledTask> tasks = new ArrayList<>();
-
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY'";
-
-        try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            try (ResultSet result = stmt.executeQuery()) {
-                while (result.next()) {
-                    tasks.add(createTaskFromResult(result));
-                }
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        return tasks;
-    }
-
-
-    @Override
-    public List<ScheduledTask> getAndLockReadyTasks() {
-
-        List<ScheduledTask> tasks = new ArrayList<>();
-
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' LIMIT 5 FOR UPDATE SKIP LOCKED";
-
-        try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            try (ResultSet result = stmt.executeQuery()) {
-                while (result.next()) {
-                    tasks.add(createTaskFromResult(result));
-                }
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        return tasks;
-    }
-
-
     private ScheduledTask createTaskFromResult(ResultSet result) {
 
         ScheduledTask task = new ScheduledTask();
@@ -268,39 +227,14 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public List<ScheduledTask> getReadyTasksByCategory(String category) {
-        List<ScheduledTask> tasks = new ArrayList<>();
-
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND category = ? LIMIT 5";
-
-        try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, category);
-
-            try (ResultSet result = stmt.executeQuery()) {
-                while (result.next()) {
-                    tasks.add(createTaskFromResult(result));
-                }
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        return tasks;
-    }
-
-
-    @Override
     public List<ScheduledTask> getAndLockReadyTasksByCategory(String category) {
 
         List<ScheduledTask> tasks = new ArrayList<>();
 
-        String sql = "SELECT * FROM " + tableName + " WHERE status = 'READY' AND category = ? LIMIT 5 FOR UPDATE SKIP LOCKED";
+        String sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' LIMIT 5 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, category);
 
             try (ResultSet result = stmt.executeQuery()) {
                 while (result.next()) {
@@ -317,9 +251,9 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public void rescheduleTask(Long id, long delay) {
+    public void rescheduleTask(Long id, long delay, String category) {
 
-        String sql = "UPDATE " + tableName + " SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
+        String sql = "UPDATE " + tableName + category + " SET execution_time = TIMESTAMPADD(MICROSECOND, ?, execution_time) WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -335,9 +269,9 @@ public class JdbcTaskRepository implements TaskRepository {
 
 
     @Override
-    public ScheduledTask findById(Long id) {
+    public ScheduledTask findById(Long id, String category) {
 
-        String sql = "SELECT * FROM " + tableName + " WHERE id = ?";
+        String sql = "SELECT * FROM " + tableName + category + " WHERE id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);

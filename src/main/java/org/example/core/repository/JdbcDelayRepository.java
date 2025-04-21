@@ -9,21 +9,20 @@ public class JdbcDelayRepository implements DelayRepository {
 
     private final DataSource dataSource;
 
-    private String tableName = "delays";
+    private final String tableName;
 
     private final String taskTableName;
 
-    public JdbcDelayRepository(DataSource dataSource, String category) {
+    public JdbcDelayRepository(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.tableName = "delays_" + category;
-        this.taskTableName = "tasks_" + category;
-        createTableIfNotExists();
+        this.tableName = "delays_";
+        this.taskTableName = "tasks_";
     }
 
     @Override
-    public DelayParams getDelayParams(Long taskId) {
+    public DelayParams getDelayParams(Long taskId, String category) {
 
-        String sql = "SELECT * FROM " + tableName + " WHERE task_id = ?";
+        String sql = "SELECT * FROM " + tableName + category + " WHERE task_id = ?";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -50,11 +49,12 @@ public class JdbcDelayRepository implements DelayRepository {
         return null;
     }
 
-
     @Override
-    public void save(DelayParams delayParams) {
+    public void save(DelayParams delayParams, String category) {
 
-        String sql = "INSERT INTO " + tableName + " (task_id, with_retry, retry_count, value_is_fixed, fix_delay_value, delay_base, delay_limit)" +
+        createTableIfNotExists(category);
+
+        String sql = "INSERT INTO " + tableName + category + " (task_id, with_retry, retry_count, value_is_fixed, fix_delay_value, delay_base, delay_limit)" +
                 " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = dataSource.getConnection()) {
@@ -70,7 +70,7 @@ public class JdbcDelayRepository implements DelayRepository {
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Failed to insert row into table " + tableName);
+                throw new SQLException("Failed to insert row into table " + tableName + category);
             }
 
         } catch (Exception e) {
@@ -78,9 +78,9 @@ public class JdbcDelayRepository implements DelayRepository {
         }
     }
 
-    private void createTableIfNotExists() {
+    private void createTableIfNotExists(String category) {
 
-        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (\n" +
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + category + " (\n" +
                 "task_id BIGINT PRIMARY KEY,\n" +
                 "    with_retry BOOL NOT NULL,\n" +
                 "    retry_count INT,\n" +
@@ -88,7 +88,7 @@ public class JdbcDelayRepository implements DelayRepository {
                 "    fix_delay_value BIGINT,\n" +
                 "    delay_base BIGINT,\n" +
                 "    delay_limit BIGINT,\n" +
-                "    FOREIGN KEY (task_id) REFERENCES " + taskTableName + " (id));";
+                "    FOREIGN KEY (task_id) REFERENCES " + taskTableName + category + " (id));";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);

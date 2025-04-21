@@ -12,12 +12,17 @@ public class DelayPolicy implements DelayService {
     }
 
     @Override
-    public DelayParams getDelayParams(Long taskId) {
-        DelayParams delayParams = delayRepository.getDelayParams(taskId);
+    public DelayParams getDelayParams(Long taskId, String category) {
+        DelayParams delayParams = delayRepository.getDelayParams(taskId, category);
         if (delayParams != null) {
             return delayParams;
         } else {
             throw new RuntimeException("ERROR. Can not get delay parameters for task with id " + taskId + ": task not found");
         }
+    }
+
+    @Override
+    public void save(DelayParams delayParams, String category) {
+        delayRepository.save(delayParams, category);
     }
 }

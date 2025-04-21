@@ -7,23 +7,23 @@ import java.util.List;
 
 public interface TaskService {
 
-    ScheduledTask getTask(Long id);
+    ScheduledTask getTask(Long id, String category);
 
-    void changeTaskStatus(Long id, TaskStatus taskStatus);
+    void changeTaskStatus(Long id, TaskStatus taskStatus, String category);
 
-    void increaseRetryCountForTask(Long id);
+    void increaseRetryCountForTask(Long id, String category);
 
-    void rescheduleTask(Long id, long delay);
-
-    List<ScheduledTask> getReadyTasks();
-
-    List<ScheduledTask> getAndLockReadyTasks();
-
-    List<ScheduledTask> getReadyTasksByCategory(String category);
+    void rescheduleTask(Long id, long delay, String category);
 
     List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
 
     void startTransaction();
 
     void commitTransaction();
+
+    Long save(ScheduledTask task, String category);
+
+    void cancelTask(Long id, String category);
+
+    ScheduledTask findById(Long id, String category);
 }

@@ -6,27 +6,21 @@ import org.example.core.entity.enums.TaskStatus;
 import java.util.List;
 
 public interface TaskRepository {
-    Long save(ScheduledTask task);
+    Long save(ScheduledTask task, String category);
 
-    void cancelTask(Long id);
+    void cancelTask(Long id, String category);
 
-    void changeTaskStatus(Long id, TaskStatus status);
+    void changeTaskStatus(Long id, TaskStatus status, String category);
 
-    void increaseRetryCountForTask(Long id);
-
-    List<ScheduledTask> getReadyTasks();
-
-    List<ScheduledTask> getAndLockReadyTasks();
-
-    List<ScheduledTask> getReadyTasksByCategory(String category);
+    void increaseRetryCountForTask(Long id, String category);
 
     List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
 
-    void rescheduleTask(Long id, long delay);
+    void rescheduleTask(Long id, long delay, String category);
 
-    ScheduledTask findById(Long id);
+    ScheduledTask findById(Long id, String category);
 
-    boolean existsById(Long id);
+    boolean existsById(Long id, String category);
 
     void startTransaction();
 

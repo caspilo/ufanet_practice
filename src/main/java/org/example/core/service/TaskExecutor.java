@@ -1,5 +1,6 @@
 package org.example.core.service;
 
+import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
@@ -18,54 +19,54 @@ public class TaskExecutor {
         this.delayService = delayService;
     }
 
-    private void fixedRetryPolicy(Long id) {
-        long fixDelayValue = delayService.getDelayParams(id).getFixDelayValue();
+    private void fixedRetryPolicy(Long id, String category) {
+        long fixDelayValue = delayService.getDelayParams(id, category).getFixDelayValue();
         if (fixDelayValue >= 0) {
-            taskService.rescheduleTask(id, fixDelayValue);
+            taskService.rescheduleTask(id, fixDelayValue, category);
         } else {
-            taskService.changeTaskStatus(id, TaskStatus.FAILED);
+            taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + fixDelayValue + " can`t be < 0");
         }
     }
 
-    private void exponentialRetryPolicy(Long id, int retryCount, double delayBase, long limit) {
+    private void exponentialRetryPolicy(Long id, int retryCount, double delayBase, long limit, String category) {
         long delayValue = getNextDelay(retryCount, delayBase, limit);
         if (delayValue >= 0) {
-            taskService.rescheduleTask(id, delayValue);
+            taskService.rescheduleTask(id, delayValue, category);
         } else {
-            taskService.changeTaskStatus(id, TaskStatus.FAILED);
+            taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + delayValue + " can`t be > limit = " + limit);
         }
     }
 
-    public boolean isRetryForTask(Long id) {
-        return delayService.getDelayParams(id).isWithRetry();
+    public boolean isRetryForTask(Long id, String category) {
+        return delayService.getDelayParams(id, category).isWithRetry();
     }
 
-    public boolean isRetryPolicyForTaskFixed(Long id) {
-        if (isRetryForTask(id)) {
-            return delayService.getDelayParams(id).isValueIsFixed();
+    public boolean isRetryPolicyForTaskFixed(Long id, String category) {
+        if (isRetryForTask(id, category)) {
+            return delayService.getDelayParams(id, category).isValueIsFixed();
         } else {
             throw new RuntimeException("ERROR. Can`t get RetryPolicy. Retry for task with id: " + id + " is turned off. ");
         }
     }
 
-    public void executeRetryPolicyForTask(Long id) {
-        if (isRetryForTask(id)) {
-            DelayParams delayParams = delayService.getDelayParams(id);
-            ScheduledTask task = taskService.getTask(id);
+    public void executeRetryPolicyForTask(Long id, String category) {
+        if (isRetryForTask(id, category)) {
+            DelayParams delayParams = delayService.getDelayParams(id, category);
+            ScheduledTask task = taskService.getTask(id, category);
             int retryCount = task.getRetryCount();
             int maxRetryCount = delayParams.getRetryCount();
             if (retryCount < maxRetryCount) {
-                if (!isRetryPolicyForTaskFixed(id)) {
-                    exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
+                if (!isRetryPolicyForTaskFixed(id, category)) {
+                    exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit(), category);
                 } else {
-                    fixedRetryPolicy(id);
+                    fixedRetryPolicy(id, category);
                 }
-                taskService.increaseRetryCountForTask(id);
+                taskService.increaseRetryCountForTask(id, category);
                 return;
             }
         }
-        taskService.changeTaskStatus(id, TaskStatus.FAILED);
+        taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
     }
 }
