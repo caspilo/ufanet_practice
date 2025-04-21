@@ -1,7 +1,7 @@
 package org.example.core.repository;
 
 import org.example.core.entity.ScheduledTask;
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ public interface TaskRepository {
 
     void cancelTask(Long id);
 
-    void changeTaskStatus(Long id, TASK_STATUS status);
+    void changeTaskStatus(Long id, TaskStatus status);
 
     void increaseRetryCountForTask(Long id);
 

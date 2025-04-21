@@ -1,6 +1,6 @@
 package org.example.core.entity.enums;
 
-public enum TASK_STATUS {
+public enum TaskStatus {
     PENDING,
     READY,
     PROCESSING,

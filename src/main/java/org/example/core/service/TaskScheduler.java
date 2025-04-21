@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
 import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 import org.example.core.repository.DelayRepository;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.JdbcDelayRepository;
@@ -138,7 +138,7 @@ public class TaskScheduler implements TaskSchedulerService {
         ScheduledTask task = taskRepository.findById(id);
 
         if (task != null) {
-            if (task.getStatus() == TASK_STATUS.PENDING) {
+            if (task.getStatus() == TaskStatus.PENDING) {
                 taskRepository.cancelTask(id);
             } else {
                 throw new RuntimeException("Cannot cancel task with id " + id + ": task status is " + task.getStatus().name());

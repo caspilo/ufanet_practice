@@ -40,7 +40,7 @@ public class Main {
 
         taskScheduler.scheduleTask(PushNotification.class, Map.of("ID", "123", "message", "test scheduling"), "2025-04-18 10:03:00");
 
-        TaskWorkerPool pool = new TaskWorkerPool(dataSource, taskScheduler);
+        TaskWorkerPool pool = new TaskWorkerPool(dataSource);
         pool.initWorker("PushNotification", 1);
     }
 }

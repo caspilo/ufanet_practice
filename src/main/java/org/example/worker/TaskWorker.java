@@ -1,7 +1,7 @@
 package org.example.worker;
 
 import org.example.core.entity.ScheduledTask;
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 import org.example.core.service.TaskExecutor;
 import org.example.core.service.TaskService;
 import org.example.core.service.delay.DelayService;
@@ -36,12 +36,12 @@ public class TaskWorker implements Runnable {
                 taskService.startTransaction();
                 List<ScheduledTask> scheduledTaskList = taskService.getAndLockReadyTasks();
                 for (ScheduledTask task : scheduledTaskList) {
-                    taskService.changeTaskStatus(task.getId(), TASK_STATUS.PROCESSING);
+                    taskService.changeTaskStatus(task.getId(), TaskStatus.PROCESSING);
                     Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(task.getCanonicalName()).getDeclaredConstructor().newInstance();
                     //System.out.println("Worker " + this.hashCode() + ", task " + task.getId() + ": ");
                     if (executeTask(taskClass, task.getParams())) {
-                        taskService.changeTaskStatus(task.getId(), TASK_STATUS.COMPLETED);
+                        taskService.changeTaskStatus(task.getId(), TaskStatus.COMPLETED);
                     } else {
                         taskExecutor.executeRetryPolicyForTask(task.getId());
                     }

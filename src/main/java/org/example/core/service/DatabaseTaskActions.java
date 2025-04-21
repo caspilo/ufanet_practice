@@ -1,7 +1,7 @@
 package org.example.core.service;
 
 import org.example.core.entity.ScheduledTask;
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 import org.example.core.repository.TaskRepository;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class DatabaseTaskActions implements TaskService {
         }
     }
 
-    public void changeTaskStatus(Long id, TASK_STATUS taskStatus) {
+    public void changeTaskStatus(Long id, TaskStatus taskStatus) {
         if (!(getTask(id).getStatus().equals(taskStatus))) {
             taskRepository.changeTaskStatus(id, taskStatus);
         }
@@ -39,7 +39,7 @@ public class DatabaseTaskActions implements TaskService {
     public void rescheduleTask(Long id, long delay) {
         if (delay >= 0) {
             taskRepository.rescheduleTask(id, delay);
-            taskRepository.changeTaskStatus(id, TASK_STATUS.PENDING);
+            taskRepository.changeTaskStatus(id, TaskStatus.PENDING);
         } else {
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay < 0");
         }

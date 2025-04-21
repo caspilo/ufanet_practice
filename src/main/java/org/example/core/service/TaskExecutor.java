@@ -2,7 +2,7 @@ package org.example.core.service;
 
 import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 import org.example.core.service.delay.DelayService;
 
 import static org.example.core.service.delay.DelayCalculator.getNextDelay;
@@ -23,7 +23,7 @@ public class TaskExecutor {
         if (fixDelayValue >= 0) {
             taskService.rescheduleTask(id, fixDelayValue);
         } else {
-            taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
+            taskService.changeTaskStatus(id, TaskStatus.FAILED);
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + fixDelayValue + " can`t be < 0");
         }
     }
@@ -33,7 +33,7 @@ public class TaskExecutor {
         if (delayValue >= 0) {
             taskService.rescheduleTask(id, delayValue);
         } else {
-            taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
+            taskService.changeTaskStatus(id, TaskStatus.FAILED);
             throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay = " + delayValue + " can`t be > limit = " + limit);
         }
     }
@@ -66,6 +66,6 @@ public class TaskExecutor {
                 return;
             }
         }
-        taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
+        taskService.changeTaskStatus(id, TaskStatus.FAILED);
     }
 }

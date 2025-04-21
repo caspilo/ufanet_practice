@@ -3,7 +3,7 @@ package org.example.core.repository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.entity.ScheduledTask;
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -98,7 +98,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
     private void createUpdateEvent() {
 
-        String sql1 = "CREATE EVENT auto_update_" + tableName +
+        String sql1 = "CREATE EVENT IF NOT EXISTS auto_update_" + tableName +
                 " ON SCHEDULE EVERY 1 MINUTE" +
                 " DO" +
                 " UPDATE " + tableName +
@@ -123,12 +123,12 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public void cancelTask(Long id) {
 
-        changeTaskStatus(id, TASK_STATUS.CANCELED);
+        changeTaskStatus(id, TaskStatus.CANCELED);
     }
 
 
     @Override
-    public void changeTaskStatus(Long id, TASK_STATUS status) {
+    public void changeTaskStatus(Long id, TaskStatus status) {
 
         String sql = "UPDATE " + tableName + " SET status = ? WHERE id = ?";
 
@@ -256,7 +256,7 @@ public class JdbcTaskRepository implements TaskRepository {
             task.setCanonicalName(result.getString(3));
             task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {
             }));
-            task.setStatus(TASK_STATUS.valueOf(result.getString(5)));
+            task.setStatus(TaskStatus.valueOf(result.getString(5)));
             task.setExecutionTime(result.getTimestamp(6));
             task.setRetryCount(result.getInt(7));
 
