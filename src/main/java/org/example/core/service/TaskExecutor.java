@@ -5,6 +5,9 @@ import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TASK_STATUS;
 import org.example.core.service.delay.DelayService;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.example.core.service.delay.DelayCalculator.getNextDelay;
 
 public class TaskExecutor {
@@ -12,6 +15,8 @@ public class TaskExecutor {
     private final TaskService taskService;
 
     private final DelayService delayService;
+    Map<Long, Boolean> isTaskRescheduled = new HashMap<>();
+
 
     public TaskExecutor(TaskService taskService, DelayService delayService) {
         this.taskService = taskService;
@@ -38,6 +43,14 @@ public class TaskExecutor {
         }
     }
 
+    private void applyRetryPolicy(Long id, int retryCount, DelayParams delayParams) {
+        if (!isRetryPolicyForTaskFixed(id)) {
+            exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
+        } else {
+            fixedRetryPolicy(id);
+        }
+    }
+
     public boolean isRetryForTask(Long id) {
         return delayService.getDelayParams(id).isWithRetry();
     }
@@ -51,21 +64,27 @@ public class TaskExecutor {
     }
 
     public void executeRetryPolicyForTask(Long id) {
-        if (isRetryForTask(id)) {
-            DelayParams delayParams = delayService.getDelayParams(id);
+        taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
+        DelayParams delayParams = delayService.getDelayParams(id);
+        if (delayParams.isWithRetry()) {
             ScheduledTask task = taskService.getTask(id);
             int retryCount = task.getRetryCount();
             int maxRetryCount = delayParams.getRetryCount();
-            if (retryCount < maxRetryCount) {
-                if (!isRetryPolicyForTaskFixed(id)) {
-                    exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit());
-                } else {
-                    fixedRetryPolicy(id);
+            if (isTaskRescheduled.containsKey(id)) {
+                if (isTaskRescheduled.get(id).equals(true)) {
+
+                    if (retryCount < maxRetryCount - 1) {
+                        applyRetryPolicy(id, retryCount, delayParams);
+                        taskService.increaseRetryCountForTask(id);
+                    } else {
+                        taskService.increaseRetryCountForTask(id);
+                        taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
+                    }
+                    return;
                 }
-                taskService.increaseRetryCountForTask(id);
-                return;
             }
+            isTaskRescheduled.put(id, true);
+            applyRetryPolicy(id, retryCount, delayParams);
         }
-        taskService.changeTaskStatus(id, TASK_STATUS.FAILED);
     }
 }
