@@ -105,7 +105,7 @@ public class JdbcTaskRepository implements TaskRepository {
         String sql1 = "CREATE EVENT IF NOT EXISTS auto_update_" + tableName + category +
                 " ON SCHEDULE EVERY 1 MINUTE" +
                 " DO" +
-                " UPDATE " + tableName +
+                " UPDATE " + tableName + category +
                 " SET status = 'READY'" +
                 " WHERE execution_time <= NOW()" +
                 " AND status IN ('READY', 'NONE');";
@@ -162,10 +162,14 @@ public class JdbcTaskRepository implements TaskRepository {
             stmt.setString(1, status.name());
             stmt.setLong(2, id);
 
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Failed to change task status with ID " + id + " to " + status.name());
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
 
@@ -243,11 +247,12 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public ScheduledTask getAndLockNextTaskByCategory(String category) {
 
-        String sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' LIMIT 1 FOR UPDATE SKIP LOCKED";
+        String sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
 
+            connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             connection.setAutoCommit(false);
 
             try (ResultSet result = stmt.executeQuery()) {
