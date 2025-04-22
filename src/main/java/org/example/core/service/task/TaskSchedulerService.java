@@ -1,7 +1,7 @@
-package org.example.core.service;
+package org.example.core.service.task;
 
 
-import org.example.core.task.Schedulable;
+import org.example.core.schedulable.Schedulable;
 
 import java.util.Map;
 

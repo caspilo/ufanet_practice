@@ -1,4 +1,4 @@
-package org.example.core.service;
+package org.example.core.service.task;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
@@ -51,13 +51,8 @@ public class DatabaseTaskActions implements TaskService {
     }
 
     @Override
-    public void startTransaction() {
-        taskRepository.startTransaction();
-    }
-
-    @Override
-    public void commitTransaction() {
-        taskRepository.commitTransaction();
+    public ScheduledTask getAndLockNextTaskByCategory(String category) {
+        return taskRepository.getAndLockNextTaskByCategory(category);
     }
 
     @Override

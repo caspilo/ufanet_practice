@@ -1,4 +1,4 @@
-package org.example.core.service;
+package org.example.core.service.task;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -6,13 +6,12 @@ import org.example.config.DataSourceConfig;
 import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
-import org.example.core.repository.DelayRepository;
 import org.example.core.repository.JdbcTaskRepository;
 import org.example.core.repository.JdbcDelayRepository;
-import org.example.core.repository.TaskRepository;
 import org.example.core.service.delay.DelayPolicy;
 import org.example.core.service.delay.DelayService;
-import org.example.core.task.Schedulable;
+import org.example.core.schedulable.Schedulable;
+import org.example.holder.ServiceHolder;
 
 import javax.sql.DataSource;
 import java.lang.reflect.InvocationTargetException;
@@ -21,26 +20,13 @@ import java.util.Map;
 
 public class TaskScheduler implements TaskSchedulerService {
 
-    private final DataSource dataSource;
-
     private final TaskService taskService;
 
     private final DelayService delayService;
 
     public TaskScheduler(){
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(DataSourceConfig.jdbcUrl);
-        config.setUsername(DataSourceConfig.username);
-        config.setPassword(DataSourceConfig.password);
-        dataSource = new HikariDataSource(config);
-        this.taskService = new DatabaseTaskActions(new JdbcTaskRepository(dataSource));
-        this.delayService = new DelayPolicy(new JdbcDelayRepository(dataSource));
-    }
-
-    public TaskScheduler(DataSource dataSource){
-        this.dataSource = dataSource;
-        this.taskService = new DatabaseTaskActions(new JdbcTaskRepository(dataSource));
-        this.delayService = new DelayPolicy(new JdbcDelayRepository(dataSource));
+        this.taskService = ServiceHolder.getTaskService();
+        this.delayService = ServiceHolder.getDelayService();
     }
 
 

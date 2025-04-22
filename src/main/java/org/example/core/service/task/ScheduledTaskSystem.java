@@ -1,4 +1,4 @@
-package org.example.core.service;
+package org.example.core.service.task;
 
 import org.example.worker.TaskWorkerPool;
 

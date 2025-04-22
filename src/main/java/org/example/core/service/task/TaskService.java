@@ -1,4 +1,4 @@
-package org.example.core.service;
+package org.example.core.service.task;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
@@ -17,9 +17,7 @@ public interface TaskService {
 
     List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
 
-    void startTransaction();
-
-    void commitTransaction();
+    ScheduledTask getAndLockNextTaskByCategory(String category);
 
     Long save(ScheduledTask task, String category);
 

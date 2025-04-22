@@ -153,6 +153,22 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
+    private void changeTaskStatus(Long id, TaskStatus status, String category, Connection connection) {
+
+        String sql = "UPDATE " + tableName + category + " SET status = ? WHERE id = ?";
+
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, status.name());
+            stmt.setLong(2, id);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
     @Override
     public void increaseRetryCountForTask(Long id, String category) {
 
@@ -167,37 +183,6 @@ public class JdbcTaskRepository implements TaskRepository {
             if (affectedRows == 0) {
                 throw new SQLException("Failed to increase retry count for task with ID: " + id);
             }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void startTransaction() {
-
-        String sql = "START TRANSACTION";
-
-        try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-
-            stmt.executeUpdate();
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    @Override
-    public void commitTransaction() {
-
-        String sql = "COMMIT";
-
-        try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-
-            stmt.executeUpdate();
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -230,23 +215,56 @@ public class JdbcTaskRepository implements TaskRepository {
     public List<ScheduledTask> getAndLockReadyTasksByCategory(String category) {
 
         List<ScheduledTask> tasks = new ArrayList<>();
+        ScheduledTask currentTask;
 
         String sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' LIMIT 5 FOR UPDATE SKIP LOCKED";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
 
+            connection.setAutoCommit(false);
+
             try (ResultSet result = stmt.executeQuery()) {
                 while (result.next()) {
-                    tasks.add(createTaskFromResult(result));
+                    currentTask = createTaskFromResult(result);
+                    changeTaskStatus(currentTask.getId(), TaskStatus.PROCESSING, category, connection);
+                    tasks.add(currentTask);
                 }
+                connection.commit();
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
         return tasks;
+    }
+
+
+    @Override
+    public ScheduledTask getAndLockNextTaskByCategory(String category) {
+
+        String sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' LIMIT 1 FOR UPDATE SKIP LOCKED";
+
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+
+            connection.setAutoCommit(false);
+
+            try (ResultSet result = stmt.executeQuery()) {
+                if (result.next()) {
+                    ScheduledTask task = createTaskFromResult(result);
+                    changeTaskStatus(task.getId(), TaskStatus.PROCESSING, category, connection);
+                    connection.commit();
+                    return task;
+                }
+                else {
+                    connection.rollback();
+                    return null;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Task locking error. ", e);
+        }
     }
 
 
