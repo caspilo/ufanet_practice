@@ -1,4 +1,4 @@
-package org.example.core.task;
+package org.example.core.schedulable;
 
 import java.util.Map;
 

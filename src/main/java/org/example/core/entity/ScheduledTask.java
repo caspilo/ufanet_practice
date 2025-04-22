@@ -1,6 +1,6 @@
 package org.example.core.entity;
 
-import org.example.core.entity.enums.TASK_STATUS;
+import org.example.core.entity.enums.TaskStatus;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -12,7 +12,7 @@ public class ScheduledTask {
     private String category;
     private String canonicalName;
     private Map<String, String> params;
-    private TASK_STATUS status = TASK_STATUS.NONE;
+    private TaskStatus status = TaskStatus.NONE;
     private Timestamp executionTime;
     private int retryCount = 0;
 
@@ -56,11 +56,11 @@ public class ScheduledTask {
         this.category = category;
     }
 
-    public TASK_STATUS getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(TASK_STATUS status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

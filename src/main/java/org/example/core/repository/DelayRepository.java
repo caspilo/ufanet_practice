@@ -4,6 +4,6 @@ import org.example.core.entity.DelayParams;
 
 public interface DelayRepository {
 
-    DelayParams getDelayParams(Long taskId);
-    void save(DelayParams delayParams);
+    DelayParams getDelayParams(Long taskId, String category);
+    void save(DelayParams delayParams, String category);
 }
