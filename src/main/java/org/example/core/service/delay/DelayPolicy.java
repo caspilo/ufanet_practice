@@ -1,6 +1,7 @@
 package org.example.core.service.delay;
 
 import org.example.core.entity.DelayParams;
+import org.example.core.logging.LogService;
 import org.example.core.repository.DelayRepository;
 
 public class DelayPolicy implements DelayService {
@@ -17,12 +18,15 @@ public class DelayPolicy implements DelayService {
         if (delayParams != null) {
             return delayParams;
         } else {
-            throw new RuntimeException("ERROR. Can not get delay parameters for task with id " + taskId + ": task not found");
+            throw new RuntimeException(String.format("Can not get delay parameters for task with id: %s and category: '%s' task not found",
+                    taskId, category));
         }
     }
 
     @Override
     public void save(DelayParams delayParams, String category) {
         delayRepository.save(delayParams, category);
+        LogService.logger.info(String.format("DelayParams for task with id: %s and category: '%s' successfully created: object %s",
+                delayParams.getTaskId(), category, delayParams));
     }
 }

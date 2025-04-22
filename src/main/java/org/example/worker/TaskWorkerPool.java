@@ -1,20 +1,14 @@
 package org.example.worker;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.example.config.DataSourceConfig;
-import org.example.core.repository.JdbcDelayRepository;
-import org.example.core.repository.JdbcTaskRepository;
-import org.example.core.service.task.DatabaseTaskActions;
-import org.example.core.service.task.TaskService;
-import org.example.core.service.delay.DelayPolicy;
+import org.example.core.logging.LogService;
 import org.example.core.service.delay.DelayService;
+import org.example.core.service.task.TaskService;
 import org.example.holder.ServiceHolder;
 
-import javax.sql.DataSource;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 public class TaskWorkerPool {
 
@@ -28,12 +22,18 @@ public class TaskWorkerPool {
     }
 
     public void initWorkers(Map<String, Integer> categoriesAndThreads) {
-        for (Map.Entry<String, Integer> entry : categoriesAndThreads.entrySet()) {
+        try {
+            LogService.logger.info("Process initializing workers started");
+            for (Map.Entry<String, Integer> entry : categoriesAndThreads.entrySet()) {
 
-            String category = entry.getKey();
-            int threadsCount = entry.getValue();
+                String category = entry.getKey();
+                int threadsCount = entry.getValue();
 
-            initWorker(category, threadsCount);
+                initWorker(category, threadsCount);
+            }
+            LogService.logger.info("Process initializing workers completed");
+        } catch (Exception e) {
+            LogService.logger.log(Level.SEVERE, "Process initializing workers failed" + e.getMessage(), e);
         }
     }
 
@@ -42,6 +42,6 @@ public class TaskWorkerPool {
         ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
 
         threadPool.submit(new TaskWorker(taskService, delayService, category));
-        System.out.println("Init worker with category " + category + ", with " + threadsCount + " thread(s) " + threadPool);
+        LogService.logger.info(String.format("Worker initializing with category %s, with %s thread(s) %s", category, threadsCount, threadPool));
     }
 }

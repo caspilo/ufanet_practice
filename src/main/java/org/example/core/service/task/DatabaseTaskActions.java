@@ -2,8 +2,10 @@ package org.example.core.service.task;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
+import org.example.core.logging.LogService;
 import org.example.core.repository.TaskRepository;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public class DatabaseTaskActions implements TaskService {
@@ -19,14 +21,17 @@ public class DatabaseTaskActions implements TaskService {
         if (task != null) {
             return task;
         } else {
-            throw new RuntimeException("ERROR. Can not get task with id " + id + ": task not found");
+            throw new RuntimeException(String.format("Can`t get task with id: %s and category: '%s'. Task not found", id, category));
         }
     }
 
     @Override
     public void changeTaskStatus(Long id, TaskStatus taskStatus, String category) {
-        if (!(getTask(id, category).getStatus().equals(taskStatus))) {
+        TaskStatus currentStatus = getTask(id, category).getStatus();
+        if (!(currentStatus.equals(taskStatus))) {
             taskRepository.changeTaskStatus(id, taskStatus, category);
+            LogService.logger.info(String.format("Status for task with id: %s and category: '%s' changed from status '%s' to status '%s'",
+                    id, category, currentStatus.name(), taskStatus.name()));
         }
     }
 
@@ -38,10 +43,13 @@ public class DatabaseTaskActions implements TaskService {
     @Override
     public void rescheduleTask(Long id, long delay, String category) {
         if (delay >= 0) {
+            Timestamp time = new Timestamp(getTask(id, category).getExecutionTime().getTime() + delay);
             taskRepository.rescheduleTask(id, delay, category);
+            LogService.logger.info(String.format("Reschedule task with id: %s and category: '%s'. New execution time = %s",
+                    id, category, time));
             taskRepository.changeTaskStatus(id, TaskStatus.PENDING, category);
         } else {
-            throw new RuntimeException("ERROR. Can`t reschedule task with id: " + id + ". Value of delay < 0");
+            throw new RuntimeException(String.format("Can`t reschedule task with id: %s and category: '%s'. Value of delay < 0", id, category));
         }
     }
 
@@ -57,7 +65,9 @@ public class DatabaseTaskActions implements TaskService {
 
     @Override
     public Long save(ScheduledTask task, String category) {
-        return taskRepository.save(task, category);
+        Long id = taskRepository.save(task, category);
+        LogService.logger.info(String.format("Task with id: %s successfully created: object %s", id, task));
+        return id;
     }
 
     @Override

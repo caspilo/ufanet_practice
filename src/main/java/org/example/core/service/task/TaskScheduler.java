@@ -1,22 +1,16 @@
 package org.example.core.service.task;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.example.config.DataSourceConfig;
 import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
-import org.example.core.repository.JdbcTaskRepository;
-import org.example.core.repository.JdbcDelayRepository;
-import org.example.core.service.delay.DelayPolicy;
-import org.example.core.service.delay.DelayService;
+import org.example.core.logging.LogService;
 import org.example.core.schedulable.Schedulable;
+import org.example.core.service.delay.DelayService;
 import org.example.holder.ServiceHolder;
 
-import javax.sql.DataSource;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class TaskScheduler implements TaskSchedulerService {
 
@@ -24,7 +18,7 @@ public class TaskScheduler implements TaskSchedulerService {
 
     private final DelayService delayService;
 
-    public TaskScheduler(){
+    public TaskScheduler() {
         this.taskService = ServiceHolder.getTaskService();
         this.delayService = ServiceHolder.getDelayService();
     }
@@ -51,7 +45,7 @@ public class TaskScheduler implements TaskSchedulerService {
 
     @Override
     public Long scheduleTask(Schedulable schedulableClass, Map<String, String> params, String executionTime, boolean withRetry,
-                             boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit){
+                             boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit) {
         return scheduleTask(schedulableClass.getClass(), params, executionTime, withRetry, fixedRetryPolicy, delayBase, fixDelayValue, maxRetryCount, delayLimit);
     }
 
@@ -67,8 +61,22 @@ public class TaskScheduler implements TaskSchedulerService {
     public Long scheduleTask(String schedulableClassName, Map<String, String> params, String executionTime, boolean withRetry,
                              boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit) {
         try {
+            LogService.logger.info("Process scheduleTask started");
+
             if (!(Class.forName(schedulableClassName).getDeclaredConstructor().newInstance() instanceof Schedulable)) {
-                throw new RuntimeException("ERROR. Class with name :" + schedulableClassName + " does not implements interface with name: " + Schedulable.class.getName());
+                throw new RuntimeException("Class with name :" + schedulableClassName + " does not implements interface with name: " + Schedulable.class.getName());
+            }
+            if (maxRetryCount < 0) {
+                throw new RuntimeException("Incorrect value of parameter maxRetryCount = " + maxRetryCount + ". Value can`t be < 0");
+            }
+            if (delayLimit < 0) {
+                throw new RuntimeException("Incorrect value for parameter delayLimit = " + delayLimit + ". Value can`t be < 0");
+            }
+            if (delayBase < 0) {
+                throw new RuntimeException("Incorrect value for parameter delayBase = " + delayBase + ". Value can`t be < 0");
+            }
+            if (fixDelayValue < 0) {
+                throw new RuntimeException("Incorrect value for parameter fixDelayValue = " + fixDelayValue + ". Value can`t be < 0");
             }
             ScheduledTask task = new ScheduledTask();
 
@@ -80,20 +88,7 @@ public class TaskScheduler implements TaskSchedulerService {
             task.setExecutionTime(Timestamp.valueOf(executionTime));
             Long id = taskService.save(task, category);
             task.setId(id);
-
             if (withRetry) {
-                if (maxRetryCount < 0) {
-                    throw new RuntimeException("ERROR. Incorrect value for parameter maxRetryCount = " + maxRetryCount + ". Value can`t be < 0");
-                }
-                if (delayLimit < 0) {
-                    throw new RuntimeException("ERROR. Incorrect value for parameter delayLimit = " + delayLimit + ". Value can`t be < 0");
-                }
-                if (delayBase < 0) {
-                    throw new RuntimeException("ERROR. Incorrect value for parameter delayBase = " + delayBase + ". Value can`t be < 0");
-                }
-                if (fixDelayValue < 0) {
-                    throw new RuntimeException("ERROR. Incorrect value for parameter fixDelayValue = " + fixDelayValue + ". Value can`t be < 0");
-                }
 
                 DelayParams delayParams = new DelayParams(task.getId());
                 delayParams.setWithRetry(withRetry);
@@ -104,28 +99,34 @@ public class TaskScheduler implements TaskSchedulerService {
                 delayParams.setDelayBase(delayBase);
                 delayService.save(delayParams, category);
             }
+            LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + id);
             return id;
 
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
-                 ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LogService.logger.log(Level.SEVERE, "Process schedule task failed. " + e.getMessage(), e);
+            return null;
         }
     }
 
 
     @Override
     public void cancelTask(Long id, String category) {
-
+        LogService.logger.info(String.format("Process cancel task with id: %s and category: '%s' started", id, category));
         ScheduledTask task = taskService.findById(id, category);
+        try {
 
-        if (task != null) {
-            if (task.getStatus() == TaskStatus.PENDING) {
-                taskService.cancelTask(id, category);
+            if (task != null) {
+                if (task.getStatus() == TaskStatus.PENDING) {
+                    taskService.cancelTask(id, category);
+                    LogService.logger.info(String.format("Process cancel Task with id: %s and category: '%s' completed. Task has been canceled successfully", id, category));
+                } else {
+                    throw new RuntimeException(String.format("Cannot cancel task with id: %s and category: '%s'. Task status is '%s'", id, category, task.getStatus().name()));
+                }
             } else {
-                throw new RuntimeException("Cannot cancel task with id " + id + ": task status is " + task.getStatus().name());
+                throw new RuntimeException(String.format("Cannot cancel task with id: %s and category: '%s'. Task not found", id, category));
             }
-        } else {
-            throw new RuntimeException("Cannot cancel task with id " + id + ": task not found");
+        } catch (Exception e) {
+            LogService.logger.log(Level.SEVERE, String.format("Process cancel task with id: %s and category: '%s' has been failed. ", id, category) + e.getMessage(), e);
         }
     }
 }

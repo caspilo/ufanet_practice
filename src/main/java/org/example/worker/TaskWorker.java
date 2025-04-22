@@ -2,18 +2,16 @@ package org.example.worker;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
+import org.example.core.logging.LogService;
+import org.example.core.schedulable.Schedulable;
+import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskExecutor;
 import org.example.core.service.task.TaskService;
-import org.example.core.service.delay.DelayService;
-import org.example.core.schedulable.Schedulable;
-import org.example.holder.RepositoryHolder;
 
-import java.sql.Connection;
-import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class TaskWorker implements Runnable {
-
     private final String category;
 
     private final TaskService taskService;
@@ -28,22 +26,30 @@ public class TaskWorker implements Runnable {
     }
 
 
-    public boolean executeTask(Schedulable task, Map<String, String> params) {
+    private boolean executeTask(Schedulable task, Map<String, String> params) {
         return task.execute(params);
     }
+
 
     @Override
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                Thread.sleep(2000);
+                Thread.sleep(5000); // периодичность получения задач из БД
                 ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
                 if (nextTask != null) {
-                    Thread.sleep(2000);
+                    LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
+                            Thread.currentThread(), nextTask.getId(), category));
+                    Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.COMPLETED, category);
+                        LogService.logger.info(String.format("Task with id: %s and category: '%s' has been executed.",
+                                nextTask.getId(), category));
                     } else {
+                        LogService.logger.info(String.format("Task with id: %s and category: '%s' has been failed.",
+                                nextTask.getId(), category));
+                        taskService.changeTaskStatus(nextTask.getId(), TaskStatus.FAILED, category);
                         taskExecutor.executeRetryPolicyForTask(nextTask.getId(), category);
                     }
                 }
@@ -60,7 +66,7 @@ public class TaskWorker implements Runnable {
                 }*/
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            LogService.logger.log(Level.SEVERE, e.getMessage(), e);
         }
     }
 }
