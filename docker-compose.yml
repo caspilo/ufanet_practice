@@ -8,5 +8,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 140502
       MYSQL_DATABASE: ufanet_tasks
+      TZ: Asia/Yekaterinburg
     volumes:
       - ./db/data:/var/lib/mysql
