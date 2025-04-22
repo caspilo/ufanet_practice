@@ -11,9 +11,9 @@ import java.util.Random;
 public class TaskThreads {
     private static final Random RANDOM = new Random();
 
-    private TaskSchedulerService taskScheduler = new TaskScheduler();
-    private Map<Integer, String> classes;
-    private Map<String, String> params;
+    private final TaskSchedulerService taskScheduler = new TaskScheduler();
+    private final Map<Integer, String> classes;
+    private final Map<String, String> params;
 
     public TaskThreads(Map<Integer, String> classes, Map<String, String> params) {
         this.classes = classes;
@@ -34,7 +34,6 @@ public class TaskThreads {
         }
     }
 
-    // TODO: убрать дублирование кода
     private static void sleep(int boundMillisToSleep) {
         try {
             Thread.sleep(RANDOM.nextInt(boundMillisToSleep));
