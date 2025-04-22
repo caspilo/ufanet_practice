@@ -65,7 +65,9 @@ public class DatabaseTaskActions implements TaskService {
 
     @Override
     public Long save(ScheduledTask task, String category) {
-        return taskRepository.save(task, category);
+        Long id = taskRepository.save(task, category);
+        LogService.logger.info(String.format("Task with id: %s successfully created: object %s", id, task));
+        return id;
     }
 
     @Override

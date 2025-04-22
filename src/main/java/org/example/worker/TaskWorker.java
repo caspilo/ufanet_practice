@@ -38,16 +38,16 @@ public class TaskWorker implements Runnable {
                 Thread.sleep(5000); // периодичность получения задач из БД
                 ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
                 if (nextTask != null) {
-                    LogService.logger.info(String.format("Worker %s start execute task with id: %s and category %s",
+                    LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             Thread.currentThread(), nextTask.getId(), category));
                     Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.COMPLETED, category);
-                        LogService.logger.info(String.format("Task with id: %s and category: %s has been executed.",
+                        LogService.logger.info(String.format("Task with id: %s and category: '%s' has been executed.",
                                 nextTask.getId(), category));
                     } else {
-                        LogService.logger.info(String.format("Task with id: %s and category: %s has been failed.",
+                        LogService.logger.info(String.format("Task with id: %s and category: '%s' has been failed.",
                                 nextTask.getId(), category));
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.FAILED, category);
                         taskExecutor.executeRetryPolicyForTask(nextTask.getId(), category);

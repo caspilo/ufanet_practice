@@ -88,7 +88,6 @@ public class TaskScheduler implements TaskSchedulerService {
             task.setExecutionTime(Timestamp.valueOf(executionTime));
             Long id = taskService.save(task, category);
             task.setId(id);
-            LogService.logger.info(String.format("Task with id: %s successfully created: object %s", id, task));
             if (withRetry) {
 
                 DelayParams delayParams = new DelayParams(task.getId());
@@ -99,7 +98,6 @@ public class TaskScheduler implements TaskSchedulerService {
                 delayParams.setFixDelayValue(fixDelayValue);
                 delayParams.setDelayBase(delayBase);
                 delayService.save(delayParams, category);
-                LogService.logger.info(String.format("DelayParams for task with id: %s and category: '%s' successfully created: object %s", id, category, delayParams));
             }
             LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + id);
             return id;
