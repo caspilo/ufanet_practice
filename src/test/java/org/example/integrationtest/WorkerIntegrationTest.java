@@ -22,6 +22,8 @@ public class WorkerIntegrationTest {
     private static final int MAX_WORKER_THREADS = 3;
     private static final int MIN_WORKER_THREADS = 1;
     private static final int TASK_THREAD_COUNT = 5;
+    private static final int BOUND_MILLIS_TO_SLEEP = 10000;
+    private static final Random RANDOM = new Random();
 
     private static TaskSchedulerService taskScheduler;
     private static TaskWorkerPool workerPool;
@@ -29,7 +31,6 @@ public class WorkerIntegrationTest {
     private static Map<Integer, String> categories;
     private static Map<Integer, String> classes;
     private static Map<String, String> params;
-    private static Random random = new Random();
 
     static {
         setupCategories();
@@ -59,7 +60,6 @@ public class WorkerIntegrationTest {
         initDataSource();
         workerPool = new TaskWorkerPool();
         taskScheduler = new TaskScheduler();
-
         initTaskThreads();
         initWorkerThreads();
     }
@@ -81,8 +81,12 @@ public class WorkerIntegrationTest {
         Thread[] workerThreads = new Thread[WORKER_THREAD_COUNT];
         for (int i = 0; i < WORKER_THREAD_COUNT; i++) {
             workerThreads[i] = new Thread(() -> {
-                initWorkerWithRandomValues();
+                while(true) {
+                    initWorkerWithRandomValues();
+                    sleep();
+                }
             });
+            workerThreads[i].setName("Worker-" + i);
             workerThreads[i].start();
         }
     }
@@ -91,21 +95,43 @@ public class WorkerIntegrationTest {
         Thread[] taskThreads = new Thread[TASK_THREAD_COUNT];
         for (int i = 0; i < TASK_THREAD_COUNT; i++) {
             taskThreads[i] = new Thread(() -> {
-                initRandomTask();
+                while (true) {
+                    initRandomTask();
+                    sleep();
+                }
             });
+            taskThreads[i].setName("Task-" + i);
             taskThreads[i].start();
         }
     }
 
+    private static void sleep() {
+        try {
+            Thread.sleep(RANDOM.nextInt(BOUND_MILLIS_TO_SLEEP));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void initWorkerWithRandomValues() {
-        String randomCategory = categories.get(random.nextInt(categories.size()));
-        int randomThreadCount = WorkerIntegrationTest.random.nextInt(MAX_WORKER_THREADS) + MIN_WORKER_THREADS;
+        String randomCategory = categories.get(RANDOM.nextInt(categories.size()));
+        int randomThreadCount = WorkerIntegrationTest.RANDOM.nextInt(MAX_WORKER_THREADS) + MIN_WORKER_THREADS;
         workerPool.initWorker(randomCategory, randomThreadCount);
+        System.out.println("Создан новый Worker:" +
+                "\nКатегория - " + randomCategory +
+                "\nКол-во потоков - " + randomThreadCount +
+                "\nИмя потока - " + Thread.currentThread().getName() +
+                "\nДата создания - " + LocalDateTime.now());
     }
 
     private static void initRandomTask() {
-        String randomCategory = classes.get(random.nextInt(classes.size()));
+        String randomClass = classes.get(RANDOM.nextInt(classes.size()));
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
-        taskScheduler.scheduleTask(randomCategory, params, executionTime);
+        taskScheduler.scheduleTask(randomClass, params, executionTime);
+        System.out.println("Создан новый Task:" +
+                "\nКласс - " + randomClass +
+                "\nВремя выполнения - " + executionTime +
+                "\nИмя потока - " + Thread.currentThread().getName() +
+                "\nДата создания - " + LocalDateTime.now());
     }
 }
