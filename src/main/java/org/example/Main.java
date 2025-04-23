@@ -3,6 +3,7 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.schedulable.DoSomething;
 import org.example.core.service.task.TaskScheduler;
 import org.example.core.service.task.TaskSchedulerService;
 import org.example.core.schedulable.PushNotification;
@@ -34,7 +35,7 @@ public class Main {
                 "ID", "4",
                 "message", "test params");
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
-        taskScheduler.scheduleTask(PushNotification.class, params, executionTime);
+        taskScheduler.scheduleTask(DoSomething.class, params, executionTime);
         taskScheduler.scheduleTask(PushNotification.class, params, executionTime);
 
         pool.initWorker("PushNotification", 1);
