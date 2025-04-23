@@ -60,7 +60,9 @@ public class TaskExecutor {
                 exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit(), category);
             }
         }
-        LogService.logger.log(Level.WARNING, String.format("Can`t get RetryPolicy. Retry for task with id: %s and category: '%s' is turned off", id, category));
+        else {
+            LogService.logger.log(Level.WARNING, String.format("Can`t get RetryPolicy. Retry for task with id: %s and category: '%s' is turned off", id, category));
+        }
     }
 
     public void executeRetryPolicyForTask(Long id, String category) {

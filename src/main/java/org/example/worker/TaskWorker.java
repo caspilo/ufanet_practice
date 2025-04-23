@@ -52,7 +52,7 @@ public class TaskWorker implements Runnable {
                 }
             }
         } catch (Exception e) {
-            LogService.logger.log(Level.SEVERE, e.getMessage(), e);
+            LogService.logger.severe(e.getMessage());
         }
     }
 }

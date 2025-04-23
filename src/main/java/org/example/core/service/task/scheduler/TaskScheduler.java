@@ -8,10 +8,8 @@ import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
 import org.example.core.validator.DelayValidator;
-import org.example.core.validator.ScheduleClassValidator;
 import org.example.holder.ServiceHolder;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,7 +29,10 @@ public class TaskScheduler implements TaskSchedulerService {
     public <T extends Schedulable> Long scheduleTask(Class<T> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
             LogService.logger.info("Process scheduleTask started");
-            validateParams(delay);
+            if (!DelayValidator.validateParams(delay)) {
+                LogService.logger.severe("Delay params validation failed");
+                return null;
+            }
             String scheduleClassName = scheduleClass.getName();
             ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
             if (isRetryableTask(delay)) {
@@ -43,12 +44,11 @@ public class TaskScheduler implements TaskSchedulerService {
             LogService.logger.log(Level.SEVERE, "Process schedule task failed. " + e.getMessage(), e);
             return null;
         }
-
     }
 
     private void validateParams(Delay delay) {
 
-        DelayValidator.validateParams(delay);
+
     }
 
     private ScheduledTask createAndSaveTask(String scheduleClassName, Map<String, String> params, String executionTime)
