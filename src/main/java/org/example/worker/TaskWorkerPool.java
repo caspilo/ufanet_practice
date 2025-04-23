@@ -1,6 +1,7 @@
 package org.example.worker;
 
 import org.example.core.logging.LogService;
+import org.example.core.metrics.MetricsCollector;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
 import org.example.holder.ServiceHolder;
@@ -37,5 +38,10 @@ public class TaskWorkerPool {
 
         threadPool.submit(new TaskWorker(category));
         LogService.logger.info(String.format("Worker initializing with category %s, with %s thread(s) %s", category, threadsCount, threadPool));
+        MetricsCollector.workerCreated(category);
+    }
+
+    public void deleteWorker(String category, int workerId) {
+        MetricsCollector.workerDeleted(category);
     }
 }

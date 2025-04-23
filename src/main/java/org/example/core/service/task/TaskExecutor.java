@@ -4,6 +4,7 @@ import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
+import org.example.core.metrics.MetricsCollector;
 import org.example.core.service.delay.DelayService;
 
 import java.util.HashMap;
@@ -82,6 +83,7 @@ public class TaskExecutor {
                         LogService.logger.info(String.format("The attempts for retry execute task with id: %s and category: '%s' are over. ",
                                 id, category));
                         taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
+                        MetricsCollector.taskFailed(category);
                     }
                     return;
                 }

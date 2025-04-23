@@ -4,6 +4,7 @@ import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
+import org.example.core.metrics.MetricsCollector;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
@@ -29,23 +30,20 @@ public class TaskScheduler implements TaskSchedulerService {
     public Long scheduleTask(Class<? extends Schedulable> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
             LogService.logger.info("Process scheduleTask started");
-            String scheduleClassName = scheduleClass.getName();
-            validateParams(delay, scheduleClassName);
-            ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
+            validateParams(delay);
+            ScheduledTask savedTask = createAndSaveTask(scheduleClass, params, executionTime);
             createAndSaveDelayParams(delay, savedTask);
             LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + savedTask.getId());
             return savedTask.getId();
         } catch (Exception e) {
             LogService.logger.log(Level.SEVERE, "Process schedule task failed. " + e.getMessage(), e);
             return null;
+        } finally {
+            MetricsCollector.taskScheduled(scheduleClass.getSimpleName());
         }
-
     }
 
-    private void validateParams(Delay delay, String scheduleClassName) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
-        if (!(Class.forName(scheduleClassName).getDeclaredConstructor().newInstance() instanceof Schedulable)) {
-            throw new RuntimeException("Class with name :" + scheduleClassName + " does not implements interface with name: " + Schedulable.class.getName());
-        }
+    private void validateParams(Delay delay) {
         if (delay.getMaxRetryCount() < 0) {
             throw new RuntimeException("Incorrect value of parameter maxRetryCount = " + delay.getMaxRetryCount() + ". Value can`t be < 0");
         }
@@ -60,12 +58,12 @@ public class TaskScheduler implements TaskSchedulerService {
         }
     }
 
-    private ScheduledTask createAndSaveTask(String scheduleClassName, Map<String, String> params, String executionTime)
-            throws ClassNotFoundException {
+    private ScheduledTask createAndSaveTask(Class<? extends Schedulable> scheduleClass,
+                                            Map<String, String> params, String executionTime) {
         ScheduledTask task = new ScheduledTask();
-        String category = Class.forName(scheduleClassName).getSimpleName();
+        String category = scheduleClass.getSimpleName();
         task.setCategory(category);
-        task.setCanonicalName(scheduleClassName);
+        task.setCanonicalName(scheduleClass.getCanonicalName());
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
         Long id = taskService.save(task, category);

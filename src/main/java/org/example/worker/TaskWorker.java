@@ -3,8 +3,8 @@ package org.example.worker;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
+import org.example.core.metrics.MetricsCollector;
 import org.example.core.schedulable.Schedulable;
-import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskExecutor;
 import org.example.core.service.task.TaskService;
 import org.example.holder.ExecutorHolder;
@@ -37,12 +37,15 @@ public class TaskWorker implements Runnable {
                 if (nextTask != null) {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             Thread.currentThread(), nextTask.getId(), category));
+                    long executionStart = System.currentTimeMillis();
                     Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.COMPLETED, category);
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been executed.",
                                 nextTask.getId(), category));
+                        long executionEnd = System.currentTimeMillis();
+                        MetricsCollector.taskExecutionTime(category, executionEnd - executionStart);
                     } else {
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been failed.",
                                 nextTask.getId(), category));

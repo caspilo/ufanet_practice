@@ -3,12 +3,15 @@ package org.example.integrationtest;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.metrics.Metrics;
 import org.example.core.schedulable.DoSomething;
 import org.example.core.schedulable.PushNotification;
 import org.example.core.schedulable.Schedulable;
 import org.example.holder.RepositoryHolder;
 
+import javax.management.*;
 import javax.sql.DataSource;
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,12 +22,22 @@ public class WorkerAndTaskIntegrationTest {
     private static final int TASK_THREAD_COUNT = 5;
     private static final int BOUND_MILLIS_TO_SLEEP = 10000;
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+            throws MalformedObjectNameException, NotCompliantMBeanException,
+            InstanceAlreadyExistsException, MBeanRegistrationException {
         initDataSource();
+        initJmxBean();
         TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS, setupCategories());
         TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams());
         workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+    }
+
+    private static void initJmxBean() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = new ObjectName("com.example:type=Metrics");
+        Metrics metrics = new Metrics();
+        mbs.registerMBean(metrics, name);
     }
 
     private static void initDataSource() {
