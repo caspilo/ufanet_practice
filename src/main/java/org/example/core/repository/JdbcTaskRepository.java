@@ -108,7 +108,7 @@ public class JdbcTaskRepository implements TaskRepository {
                 " UPDATE " + tableName + category +
                 " SET status = 'READY'" +
                 " WHERE execution_time <= NOW()" +
-                " AND status IN ('READY', 'NONE');";
+                " AND status IN ('PENDING', 'NONE');";
 
         String sql2 = "SET GLOBAL event_scheduler = ON";
 
