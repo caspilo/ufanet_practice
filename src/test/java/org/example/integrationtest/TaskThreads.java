@@ -1,7 +1,9 @@
 package org.example.integrationtest;
 
-import org.example.core.service.task.TaskScheduler;
-import org.example.core.service.task.TaskSchedulerService;
+import org.example.core.schedulable.Schedulable;
+import org.example.core.service.task.scheduler.Delay;
+import org.example.core.service.task.scheduler.TaskScheduler;
+import org.example.core.service.task.scheduler.TaskSchedulerService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -9,10 +11,11 @@ import java.util.Map;
 
 public class TaskThreads extends TestThreads {
     private final TaskSchedulerService taskScheduler = new TaskScheduler();
-    private final Map<Integer, String> classes;
+    private final Map<Integer, Class<? extends Schedulable>> classes;
     private final Map<String, String> params;
 
-    public TaskThreads(Map<Integer, String> classes, Map<String, String> params) {
+    public TaskThreads(Map<Integer, Class<? extends Schedulable>> classes,
+                       Map<String, String> params) {
         this.classes = classes;
         this.params = params;
     }
@@ -34,15 +37,18 @@ public class TaskThreads extends TestThreads {
     }
 
     private void initRandomTask() {
-        String randomClass = classes.get(RANDOM.nextInt(classes.size()));
+        Class<? extends Schedulable> randomClass = classes.get(RANDOM.nextInt(classes.size()));
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
-        taskScheduler.scheduleTask(randomClass, params, executionTime);
+        Delay defaultDelayParams = new Delay.DelayBuilder().build();
+        taskScheduler.scheduleTask(randomClass, params, executionTime, defaultDelayParams);
         printTaskInfo(randomClass, executionTime);
     }
 
-    private static void printTaskInfo(String randomClass, String executionTime) {
+    private static void printTaskInfo(Class<? extends Schedulable> randomClass,
+                                      String executionTime) {
+        String className = randomClass.getName();
         System.out.println("Создан новый Task:" +
-                "\nКласс - " + randomClass +
+                "\nКласс - " + className +
                 "\nВремя выполнения - " + executionTime +
                 "\nИмя потока - " + Thread.currentThread().getName() +
                 "\nДата создания - " + LocalDateTime.now());
