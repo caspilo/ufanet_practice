@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
 import org.example.core.schedulable.DoSomething;
 import org.example.core.schedulable.PushNotification;
+import org.example.core.schedulable.Schedulable;
 import org.example.holder.RepositoryHolder;
 
 import javax.sql.DataSource;
@@ -46,10 +47,10 @@ public class WorkerAndTaskIntegrationTest {
         return categories;
     }
 
-    private static Map<Integer, String> setupClasses() {
-        Map<Integer, String> classes = new HashMap<>();
-        classes.put(0, PushNotification.class.getName());
-        classes.put(1, DoSomething.class.getName());
+    private static Map<Integer, Class<? extends Schedulable>> setupClasses() {
+        Map<Integer, Class<? extends Schedulable>> classes = new HashMap<>();
+        classes.put(0, PushNotification.class);
+        classes.put(1, DoSomething.class);
         return classes;
     }
 

@@ -37,8 +37,8 @@ public class Main {
                 "message", "test params");
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
         Delay defaultDelayParams = new Delay.DelayBuilder().build();
-        taskScheduler.scheduleTask(DoSomething.class.getName(), params, executionTime, defaultDelayParams);
-        taskScheduler.scheduleTask(PushNotification.class.getName(), params, executionTime, defaultDelayParams);
+        taskScheduler.scheduleTask(DoSomething.class, params, executionTime, defaultDelayParams);
+        taskScheduler.scheduleTask(PushNotification.class, params, executionTime, defaultDelayParams);
 
         pool.initWorker("PushNotification", 1);
         pool.initWorker("PushNotification", 1);

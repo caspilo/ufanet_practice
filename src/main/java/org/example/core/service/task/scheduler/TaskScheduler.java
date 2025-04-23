@@ -26,9 +26,10 @@ public class TaskScheduler implements TaskSchedulerService {
     }
 
     @Override
-    public Long scheduleTask(String scheduleClassName, Map<String, String> params, String executionTime, Delay delay) {
+    public Long scheduleTask(Class scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
             LogService.logger.info("Process scheduleTask started");
+            String scheduleClassName = scheduleClass.getName();
             validateParams(delay, scheduleClassName);
             ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
             if (isRetryableTask(delay)) {
