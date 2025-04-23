@@ -3,6 +3,7 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.schedulable.DoSomething;
 import org.example.core.service.task.TaskScheduler;
 import org.example.core.service.task.TaskSchedulerService;
 import org.example.core.schedulable.PushNotification;
@@ -10,12 +11,15 @@ import org.example.holder.RepositoryHolder;
 import org.example.worker.TaskWorkerPool;
 
 import javax.sql.DataSource;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 
 public class Main {
 
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DataSourceConfig.jdbcUrl);
@@ -26,6 +30,13 @@ public class Main {
         RepositoryHolder.init(dataSource); // инициализация DataSource, репозиториев, сервисов
         TaskSchedulerService taskScheduler = new TaskScheduler();
         TaskWorkerPool pool = new TaskWorkerPool();
+
+        Map<String, String> params = Map.of(
+                "ID", "4",
+                "message", "test params");
+        String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
+        taskScheduler.scheduleTask(DoSomething.class, params, executionTime);
+        taskScheduler.scheduleTask(PushNotification.class, params, executionTime);
 
         pool.initWorker("PushNotification", 1);
         pool.initWorker("PushNotification", 1);

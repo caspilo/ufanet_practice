@@ -13,11 +13,8 @@ import java.util.logging.Level;
 
 public class TaskWorker implements Runnable {
     private final String category;
-
     private final TaskService taskService;
-
     private final TaskExecutor taskExecutor;
-
 
     public TaskWorker(TaskService taskService, DelayService delayService, String category) {
         this.taskService = taskService;
@@ -25,11 +22,9 @@ public class TaskWorker implements Runnable {
         this.category = category;
     }
 
-
     private boolean executeTask(Schedulable task, Map<String, String> params) {
         return task.execute(params);
     }
-
 
     @Override
     public void run() {
@@ -53,17 +48,6 @@ public class TaskWorker implements Runnable {
                         taskExecutor.executeRetryPolicyForTask(nextTask.getId(), category);
                     }
                 }
-
-                /*List<ScheduledTask> scheduledTaskList = taskService.getAndLockReadyTasksByCategory(category);
-                for (ScheduledTask task : scheduledTaskList) {
-                    Thread.sleep(2000);
-                    Schedulable taskClass = (Schedulable) Class.forName(task.getCanonicalName()).getDeclaredConstructor().newInstance();
-                    if (executeTask(taskClass, task.getParams())) {
-                        taskService.changeTaskStatus(task.getId(), TaskStatus.COMPLETED, category);
-                    } else {
-                        taskExecutor.executeRetryPolicyForTask(task.getId(), category);
-                    }
-                }*/
             }
         } catch (Exception e) {
             LogService.logger.log(Level.SEVERE, e.getMessage(), e);
