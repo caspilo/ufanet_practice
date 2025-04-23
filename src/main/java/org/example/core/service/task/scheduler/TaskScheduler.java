@@ -32,9 +32,7 @@ public class TaskScheduler implements TaskSchedulerService {
             String scheduleClassName = scheduleClass.getName();
             validateParams(delay, scheduleClassName);
             ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
-            if (isRetryableTask(delay)) {
-                createAndSaveDelayParams(delay, savedTask);
-            }
+            createAndSaveDelayParams(delay, savedTask);
             LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + savedTask.getId());
             return savedTask.getId();
         } catch (Exception e) {
@@ -77,7 +75,7 @@ public class TaskScheduler implements TaskSchedulerService {
 
     private void createAndSaveDelayParams(Delay delay, ScheduledTask task) {
         DelayParams delayParams = new DelayParams(task.getId());
-        delayParams.setWithRetry(isRetryableTask(delay));
+        delayParams.setWithRetry(delay.isWithRetry());
         delayParams.setValueIsFixed(delay.isFixedRetryPolicy());
         delayParams.setRetryCount(delay.getMaxRetryCount());
         delayParams.setDelayLimit(delay.getDelayLimit());
@@ -85,11 +83,6 @@ public class TaskScheduler implements TaskSchedulerService {
         delayParams.setDelayBase(delay.getDelayBase());
         delayService.save(delayParams, task.getCategory());
     }
-
-    private static boolean isRetryableTask(Delay delay) {
-        return delay.isWithRetry();
-    }
-
 
     @Override
     public void cancelTask(Long id, String category) {
