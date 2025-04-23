@@ -1,5 +1,6 @@
 package org.example.integrationtest;
 
+import org.example.core.service.task.scheduler.Delay;
 import org.example.core.service.task.scheduler.TaskScheduler;
 import org.example.core.service.task.scheduler.TaskSchedulerService;
 
@@ -36,7 +37,8 @@ public class TaskThreads extends TestThreads {
     private void initRandomTask() {
         String randomClass = classes.get(RANDOM.nextInt(classes.size()));
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
-        taskScheduler.scheduleTask(randomClass, params, executionTime);
+        Delay defaultDelayParams = new Delay.DelayBuilder().build();
+        taskScheduler.scheduleTask(randomClass, params, executionTime, defaultDelayParams);
         printTaskInfo(randomClass, executionTime);
     }
 
