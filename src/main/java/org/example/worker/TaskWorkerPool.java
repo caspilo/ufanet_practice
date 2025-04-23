@@ -14,14 +14,12 @@ public class TaskWorkerPool {
     public TaskWorkerPool() {
     }
 
-    public void initWorkers(Map<Class, Integer> categoriesAndThreads) {
+    public <T extends Schedulable> void initWorkers(Map<Class<T>, Integer> categoriesAndThreads) {
         try {
             LogService.logger.info("Process initializing workers started");
-            for (Map.Entry<Class, Integer> entry : categoriesAndThreads.entrySet()) {
+            for (Map.Entry<Class<T>, Integer> entry : categoriesAndThreads.entrySet()) {
 
-                ScheduleClassValidator.validateTaskClass(entry.getKey());
-
-                Class taskClass = entry.getKey();
+                Class<T> taskClass = entry.getKey();
                 int threadsCount = entry.getValue();
 
                 initWorker(taskClass, threadsCount);
@@ -32,11 +30,9 @@ public class TaskWorkerPool {
         }
     }
 
-    public void initWorker(Class taskClass, int threadsCount) {
+    public <T extends Schedulable> void initWorker(Class<T> taskClass, int threadsCount) {
 
         try {
-            ScheduleClassValidator.validateTaskClass(taskClass);
-
             ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
             String category = taskClass.getSimpleName();
 
