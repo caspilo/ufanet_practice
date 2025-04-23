@@ -90,6 +90,8 @@ public class TaskExecutor {
             applyRetryPolicy(id, retryCount, delayParams, category);
             LogService.logger.info(String.format("Retry execute task with id: %s and category: '%s' started. Current attempt = %s",
                     id, category, retryCount + 1));
+            return;
         }
+        taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
     }
 }

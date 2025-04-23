@@ -1,9 +1,7 @@
 package org.example.worker;
 
 import org.example.core.logging.LogService;
-import org.example.core.service.delay.DelayService;
-import org.example.core.service.task.TaskService;
-import org.example.holder.ServiceHolder;
+import org.example.core.schedulable.Schedulable;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -15,12 +13,12 @@ public class TaskWorkerPool {
     public TaskWorkerPool() {
     }
 
-    public void initWorkers(Map<String, Integer> categoriesAndThreads) {
+    public void initWorkers(Map<Schedulable, Integer> categoriesAndThreads) {
         try {
             LogService.logger.info("Process initializing workers started");
-            for (Map.Entry<String, Integer> entry : categoriesAndThreads.entrySet()) {
+            for (Map.Entry<Schedulable, Integer> entry : categoriesAndThreads.entrySet()) {
 
-                String category = entry.getKey();
+                String category = entry.getKey().getClass().getSimpleName();
                 int threadsCount = entry.getValue();
 
                 initWorker(category, threadsCount);
@@ -35,7 +33,9 @@ public class TaskWorkerPool {
 
         ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
 
-        threadPool.submit(new TaskWorker(category));
+        for (int i = 0; i < threadsCount; i++) {
+            threadPool.submit(new TaskWorker(category));
+        }
         LogService.logger.info(String.format("Worker initializing with category %s, with %s thread(s) %s", category, threadsCount, threadPool));
     }
 }
