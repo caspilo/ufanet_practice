@@ -6,11 +6,8 @@ import org.example.core.service.task.TaskSchedulerService;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Random;
 
-public class TaskThreads {
-    private static final Random RANDOM = new Random();
-
+public class TaskThreads extends TestThreads {
     private final TaskSchedulerService taskScheduler = new TaskScheduler();
     private final Map<Integer, String> classes;
     private final Map<String, String> params;
@@ -20,9 +17,10 @@ public class TaskThreads {
         this.params = params;
     }
 
-    public void initTaskThreads(int taskThreadCount, int boundMillisToSleep) {
-        Thread[] taskThreads = new Thread[taskThreadCount];
-        for (int i = 0; i < taskThreadCount; i++) {
+    @Override
+    public Thread[] initThreads(int threadCount, int boundMillisToSleep) {
+        Thread[] taskThreads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
             taskThreads[i] = new Thread(() -> {
                 while (true) {
                     initRandomTask();
@@ -32,14 +30,7 @@ public class TaskThreads {
             taskThreads[i].setName("Task-" + i);
             taskThreads[i].start();
         }
-    }
-
-    private static void sleep(int boundMillisToSleep) {
-        try {
-            Thread.sleep(RANDOM.nextInt(boundMillisToSleep));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return taskThreads;
     }
 
     private void initRandomTask() {

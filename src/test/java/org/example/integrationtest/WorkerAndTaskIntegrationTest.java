@@ -20,10 +20,10 @@ public class WorkerAndTaskIntegrationTest {
 
     public static void main(String[] args) {
         initDataSource();
-        WorkerThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS, setupCategories());
-        TaskThreads taskThreads = new TaskThreads(setupClasses(), setupParams());
-        workerThreads.initWorkerThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
-        taskThreads.initTaskThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+        TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS, setupCategories());
+        TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams());
+        workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+        taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
     }
 
     private static void initDataSource() {
