@@ -7,6 +7,8 @@ import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskExecutor;
 import org.example.core.service.task.TaskService;
+import org.example.holder.ExecutorHolder;
+import org.example.holder.ServiceHolder;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -16,9 +18,9 @@ public class TaskWorker implements Runnable {
     private final TaskService taskService;
     private final TaskExecutor taskExecutor;
 
-    public TaskWorker(TaskService taskService, DelayService delayService, String category) {
-        this.taskService = taskService;
-        this.taskExecutor = new TaskExecutor(taskService, delayService);
+    public TaskWorker(String category) {
+        this.taskService = ServiceHolder.getTaskService();
+        this.taskExecutor = ExecutorHolder.getTaskExecutor();
         this.category = category;
     }
 
@@ -30,7 +32,7 @@ public class TaskWorker implements Runnable {
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                Thread.sleep(5000); // периодичность получения задач из БД
+                Thread.sleep(3000);
                 ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
                 if (nextTask != null) {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",

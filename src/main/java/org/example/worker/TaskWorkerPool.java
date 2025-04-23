@@ -12,13 +12,7 @@ import java.util.logging.Level;
 
 public class TaskWorkerPool {
 
-    private final TaskService taskService;
-
-    private final DelayService delayService;
-
     public TaskWorkerPool() {
-        this.taskService = ServiceHolder.getTaskService();
-        this.delayService = ServiceHolder.getDelayService();
     }
 
     public void initWorkers(Map<String, Integer> categoriesAndThreads) {
@@ -41,7 +35,7 @@ public class TaskWorkerPool {
 
         ExecutorService threadPool = Executors.newFixedThreadPool(threadsCount);
 
-        threadPool.submit(new TaskWorker(taskService, delayService, category));
+        threadPool.submit(new TaskWorker(category));
         LogService.logger.info(String.format("Worker initializing with category %s, with %s thread(s) %s", category, threadsCount, threadPool));
     }
 }
