@@ -4,8 +4,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
 import org.example.core.schedulable.DoSomething;
-import org.example.core.service.task.TaskScheduler;
-import org.example.core.service.task.TaskSchedulerService;
+import org.example.core.service.task.scheduler.TaskScheduler;
+import org.example.core.service.task.scheduler.TaskSchedulerService;
 import org.example.core.schedulable.PushNotification;
 import org.example.holder.RepositoryHolder;
 import org.example.worker.TaskWorkerPool;
@@ -13,7 +13,7 @@ import org.example.worker.TaskWorkerPool;
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+
 import java.util.Map;
 
 public class Main {

@@ -1,7 +1,7 @@
 package org.example.integrationtest;
 
-import org.example.core.service.task.TaskScheduler;
-import org.example.core.service.task.TaskSchedulerService;
+import org.example.core.service.task.scheduler.TaskScheduler;
+import org.example.core.service.task.scheduler.TaskSchedulerService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
