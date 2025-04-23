@@ -2,7 +2,6 @@ package org.example.worker;
 
 import org.example.core.logging.LogService;
 import org.example.core.schedulable.Schedulable;
-import org.example.core.validator.ScheduleClassValidator;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
