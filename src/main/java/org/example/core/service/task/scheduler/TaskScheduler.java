@@ -28,10 +28,10 @@ public class TaskScheduler implements TaskSchedulerService {
     }
 
     @Override
-    public Long scheduleTask(Class scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
+    public <T extends Schedulable> Long scheduleTask(Class<T> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
             LogService.logger.info("Process scheduleTask started");
-            validateParams(delay, scheduleClass);
+            validateParams(delay);
             String scheduleClassName = scheduleClass.getName();
             ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
             if (isRetryableTask(delay)) {
@@ -46,9 +46,8 @@ public class TaskScheduler implements TaskSchedulerService {
 
     }
 
-    private void validateParams(Delay delay, Class scheduleClass) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
+    private void validateParams(Delay delay) {
 
-        ScheduleClassValidator.validateTaskClass(scheduleClass);
         DelayValidator.validateParams(delay);
     }
 
