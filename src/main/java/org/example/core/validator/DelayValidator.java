@@ -1,16 +1,17 @@
 package org.example.core.validator;
 
 import org.example.core.entity.DelayParams;
+import org.example.core.service.task.scheduler.Delay;
 
 public class DelayValidator {
 
-    public static boolean validateParams(DelayParams params) {
+    public static boolean validateParams(Delay params) {
 
         if (params == null) {
             throw new IllegalArgumentException("Params are null");
         }
 
-        return validateParams(params.isWithRetry(), params.isValueIsFixed(), params.getDelayBase(), params.getFixDelayValue(), params.getRetryCount(), params.getDelayLimit());
+        return validateParams(params.isWithRetry(), params.isFixedRetryPolicy(), params.getDelayBase(), params.getFixDelayValue(), params.getMaxRetryCount(), params.getDelayLimit());
     }
 
     private static boolean validateParams(boolean withRetry, boolean fixedRetryPolicy, Long delayBase, Long fixDelayValue, int maxRetryCount, Long delayLimit) {

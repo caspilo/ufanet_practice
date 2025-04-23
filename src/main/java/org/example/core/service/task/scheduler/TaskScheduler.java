@@ -7,6 +7,8 @@ import org.example.core.logging.LogService;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
+import org.example.core.validator.DelayValidator;
+import org.example.core.validator.ScheduleClassValidator;
 import org.example.holder.ServiceHolder;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,8 +31,8 @@ public class TaskScheduler implements TaskSchedulerService {
     public Long scheduleTask(Class scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
             LogService.logger.info("Process scheduleTask started");
+            validateParams(delay, scheduleClass);
             String scheduleClassName = scheduleClass.getName();
-            validateParams(delay, scheduleClassName);
             ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
             if (isRetryableTask(delay)) {
                 createAndSaveDelayParams(delay, savedTask);
@@ -44,22 +46,10 @@ public class TaskScheduler implements TaskSchedulerService {
 
     }
 
-    private void validateParams(Delay delay, String scheduleClassName) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
-        if (!(Class.forName(scheduleClassName).getDeclaredConstructor().newInstance() instanceof Schedulable)) {
-            throw new RuntimeException("Class with name :" + scheduleClassName + " does not implements interface with name: " + Schedulable.class.getName());
-        }
-        if (delay.getMaxRetryCount() < 0) {
-            throw new RuntimeException("Incorrect value of parameter maxRetryCount = " + delay.getMaxRetryCount() + ". Value can`t be < 0");
-        }
-        if (delay.getDelayLimit() < 0) {
-            throw new RuntimeException("Incorrect value for parameter delayLimit = " + delay.getDelayLimit() + ". Value can`t be < 0");
-        }
-        if (delay.getDelayBase() < 0) {
-            throw new RuntimeException("Incorrect value for parameter delayBase = " + delay.getDelayBase() + ". Value can`t be < 0");
-        }
-        if (delay.getFixDelayValue() < 0) {
-            throw new RuntimeException("Incorrect value for parameter fixDelayValue = " + delay.getFixDelayValue() + ". Value can`t be < 0");
-        }
+    private void validateParams(Delay delay, Class scheduleClass) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
+
+        ScheduleClassValidator.validateTaskClass(scheduleClass);
+        DelayValidator.validateParams(delay);
     }
 
     private ScheduledTask createAndSaveTask(String scheduleClassName, Map<String, String> params, String executionTime)
