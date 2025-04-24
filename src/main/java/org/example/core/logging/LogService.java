@@ -7,11 +7,11 @@ import java.util.logging.Logger;
 
 public class LogService {
     public static Logger logger = null;
-
     static {
         try (FileInputStream ins = new FileInputStream("src/main/java/org/example/logging.properties")) {
             LogManager.getLogManager().readConfiguration(ins);
             logger = Logger.getLogger(LogService.class.getName());
+            //logger.setUseParentHandlers(false);
         } catch (IOException e) {
             System.err.println("Could not setup logger configuration: " + e);
         }
