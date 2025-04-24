@@ -88,7 +88,7 @@ public class JdbcDelayRepository implements DelayRepository {
                 "    fix_delay_value BIGINT,\n" +
                 "    delay_base BIGINT,\n" +
                 "    delay_limit BIGINT,\n" +
-                "    FOREIGN KEY (task_id) REFERENCES " + taskTableName + category + " (id));";
+                "    FOREIGN KEY (task_id) REFERENCES " + taskTableName + category + " (id) ON DELETE CASCADE);";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
