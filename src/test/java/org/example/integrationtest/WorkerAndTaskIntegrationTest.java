@@ -3,7 +3,7 @@ package org.example.integrationtest;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
-import org.example.core.metrics.Metrics;
+import org.example.core.monitoring.mbean.Metrics;
 import org.example.core.schedulable.DoSomething;
 import org.example.core.schedulable.PushNotification;
 import org.example.core.schedulable.Schedulable;

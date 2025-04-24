@@ -1,10 +1,7 @@
 package org.example.worker;
 
 import org.example.core.logging.LogService;
-import org.example.core.metrics.MetricsCollector;
-import org.example.core.service.delay.DelayService;
-import org.example.core.service.task.TaskService;
-import org.example.holder.ServiceHolder;
+import org.example.core.monitoring.metrics.MetricsCollector;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;

@@ -4,7 +4,7 @@ import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.metrics.MetricsCollector;
+import org.example.core.monitoring.metrics.MetricsCollector;
 import org.example.core.service.delay.DelayService;
 
 import java.util.HashMap;
