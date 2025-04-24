@@ -47,7 +47,12 @@ public class TaskWorker implements Runnable {
                 Thread.sleep(3000);
                 LogService.logger.info(String.format("Worker with id: %s and category '%s' searching ready tasks...",
                         workerId, category));
-                ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
+                ScheduledTask nextTask = null;
+                try {
+                    nextTask = taskService.getAndLockNextTaskByCategory(category);
+                } catch (Exception e) {
+                    LogService.logger.severe(e.getMessage());
+                }
                 if (nextTask != null) {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             workerId, nextTask.getId(), category));
