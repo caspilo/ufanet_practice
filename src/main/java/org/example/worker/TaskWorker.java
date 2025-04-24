@@ -33,7 +33,12 @@ public class TaskWorker implements Runnable {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 Thread.sleep(3000);
-                ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
+                ScheduledTask nextTask = null;
+                try {
+                    nextTask = taskService.getAndLockNextTaskByCategory(category);
+                } catch (Exception e) {
+                    LogService.logger.severe(e.getMessage());
+                }
                 if (nextTask != null) {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             Thread.currentThread(), nextTask.getId(), category));
