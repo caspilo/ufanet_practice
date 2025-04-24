@@ -4,44 +4,53 @@ import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
 import org.example.core.schedulable.Schedulable;
-import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskExecutor;
 import org.example.core.service.task.TaskService;
 import org.example.holder.ExecutorHolder;
 import org.example.holder.ServiceHolder;
 
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.UUID;
 
 public class TaskWorker implements Runnable {
     private final String category;
+
+    private final UUID workerId;
     private final TaskService taskService;
     private final TaskExecutor taskExecutor;
 
-    public TaskWorker(String category) {
+    private boolean doStop = false;
+
+    public TaskWorker(String category, UUID workerId) {
+        this.workerId = workerId;
         this.taskService = ServiceHolder.getTaskService();
         this.taskExecutor = ExecutorHolder.getTaskExecutor();
         this.category = category;
     }
 
-    private boolean executeTask(Schedulable task, Map<String, String> params) {
+    public synchronized void doStop() {
+        this.doStop = true;
+    }
+
+    private synchronized boolean keepRunning() {
+        return !this.doStop;
+    }
+
+    private synchronized boolean executeTask(Schedulable task, Map<String, String> params) {
         return task.execute(params);
     }
 
     @Override
     public void run() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (keepRunning()) {
                 Thread.sleep(3000);
-                ScheduledTask nextTask = null;
-                try {
-                    nextTask = taskService.getAndLockNextTaskByCategory(category);
-                } catch (Exception e) {
-                    LogService.logger.severe(e.getMessage());
-                }
+                LogService.logger.info(String.format("Worker with id: %s and category '%s' searching ready tasks...",
+                        workerId, category));
+                ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
                 if (nextTask != null) {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
-                            Thread.currentThread(), nextTask.getId(), category));
+                            workerId, nextTask.getId(), category));
                     Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
@@ -56,6 +65,7 @@ public class TaskWorker implements Runnable {
                     }
                 }
             }
+            LogService.logger.info(String.format("Worker with id: %s and category: '%s' stopped", workerId, category));
         } catch (Exception e) {
             LogService.logger.severe(e.getMessage());
         }
