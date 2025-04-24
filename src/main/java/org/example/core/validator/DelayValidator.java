@@ -1,6 +1,5 @@
 package org.example.core.validator;
 
-import org.example.core.entity.DelayParams;
 import org.example.core.logging.LogService;
 import org.example.core.service.task.scheduler.Delay;
 
@@ -44,7 +43,6 @@ public class DelayValidator {
                 return false;
             }
         }
-
         return true;
     }
 }

@@ -267,8 +267,8 @@ public class JdbcTaskRepository implements TaskRepository {
                     return null;
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Task locking error. ", e);
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Task locking error. %s", e));
         }
     }
 
