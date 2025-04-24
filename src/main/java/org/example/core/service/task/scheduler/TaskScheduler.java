@@ -28,45 +28,35 @@ public class TaskScheduler implements TaskSchedulerService {
     @Override
     public <T extends Schedulable> Long scheduleTask(Class<T> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
-            LogService.logger.info("Process scheduleTask started");
+            LogService.logger.info("Process scheduleTask for '" + scheduleClass.getName() + "' started");
             if (!DelayValidator.validateParams(delay)) {
-                LogService.logger.severe("Delay params validation failed");
-                return null;
+                throw new RuntimeException("Delay params validation failed");
             }
-            String scheduleClassName = scheduleClass.getName();
-            ScheduledTask savedTask = createAndSaveTask(scheduleClassName, params, executionTime);
-            if (isRetryableTask(delay)) {
-                createAndSaveDelayParams(delay, savedTask);
-            }
+            ScheduledTask savedTask = createAndSaveTask(scheduleClass, params, executionTime);
+            createAndSaveDelayParams(delay, savedTask);
+
             LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + savedTask.getId());
             return savedTask.getId();
         } catch (Exception e) {
-            LogService.logger.log(Level.SEVERE, "Process schedule task failed. " + e.getMessage(), e);
+            LogService.logger.severe("Process schedule task failed. " + e.getMessage());
             return null;
         }
     }
 
-    private void validateParams(Delay delay) {
-
-
-    }
-
-    private ScheduledTask createAndSaveTask(String scheduleClassName, Map<String, String> params, String executionTime)
-            throws ClassNotFoundException {
+    private <T extends Schedulable> ScheduledTask createAndSaveTask(Class<T> scheduleClass, Map<String, String> params, String executionTime) {
         ScheduledTask task = new ScheduledTask();
-        String category = Class.forName(scheduleClassName).getSimpleName();
+        String category = scheduleClass.getSimpleName();
         task.setCategory(category);
-        task.setCanonicalName(scheduleClassName);
+        task.setCanonicalName(scheduleClass.getName());
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
-        Long id = taskService.save(task, category);
-        task.setId(id);
+        task.setId(taskService.save(task, category));
         return task;
     }
 
     private void createAndSaveDelayParams(Delay delay, ScheduledTask task) {
         DelayParams delayParams = new DelayParams(task.getId());
-        delayParams.setWithRetry(isRetryableTask(delay));
+        delayParams.setWithRetry(delay.isWithRetry());
         delayParams.setValueIsFixed(delay.isFixedRetryPolicy());
         delayParams.setRetryCount(delay.getMaxRetryCount());
         delayParams.setDelayLimit(delay.getDelayLimit());
@@ -75,11 +65,6 @@ public class TaskScheduler implements TaskSchedulerService {
         delayService.save(delayParams, task.getCategory());
     }
 
-    private static boolean isRetryableTask(Delay delay) {
-        return delay.isWithRetry();
-    }
-
-
     @Override
     public void cancelTask(Long id, String category) {
         LogService.logger.info(String.format("Process cancel task with id: %s and category: '%s' started", id, category));
@@ -87,7 +72,7 @@ public class TaskScheduler implements TaskSchedulerService {
         try {
             tryToCancelTask(id, category, task);
         } catch (Exception e) {
-            LogService.logger.log(Level.SEVERE, String.format("Process cancel task with id: %s and category: '%s' has been failed. ", id, category) + e.getMessage(), e);
+            LogService.logger.severe(String.format("Process cancel task with id: %s and category: '%s' has been failed. ", id, category) + e.getMessage());
         }
     }
 

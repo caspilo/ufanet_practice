@@ -8,7 +8,6 @@ import org.example.core.service.delay.DelayService;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import static org.example.core.service.delay.DelayCalculator.getNextDelay;
 
@@ -59,13 +58,14 @@ public class TaskExecutor {
                         id, category));
                 exponentialRetryPolicy(id, retryCount, delayParams.getDelayBase(), delayParams.getDelayLimit(), category);
             }
-        }
-        else {
-            LogService.logger.log(Level.WARNING, String.format("Can`t get RetryPolicy. Retry for task with id: %s and category: '%s' is turned off", id, category));
+        } else {
+            LogService.logger.warning(String.format("Can`t get RetryPolicy. Retry for task with id: %s and category: '%s' is turned off", id, category));
         }
     }
 
     public void executeRetryPolicyForTask(Long id, String category) {
+        LogService.logger.info(String.format("Trying to retry execute task with id: %s and category: '%s'",
+                id, category));
         DelayParams delayParams = delayService.getDelayParams(id, category);
         if (delayParams.isWithRetry()) {
             ScheduledTask task = taskService.getTask(id, category);
@@ -77,7 +77,7 @@ public class TaskExecutor {
                     if (retryCount < maxRetryCount - 1) {
                         applyRetryPolicy(id, retryCount, delayParams, category);
                         taskService.increaseRetryCountForTask(id, category);
-                        LogService.logger.info(String.format("Retry execute task with id: %s and category: '%s' started. Current attempt = %s",
+                        LogService.logger.info(String.format("Retrying execute task with id: %s and category: '%s' started. Current attempt = %s",
                                 id, category, retryCount + 2));
                     } else {
                         taskService.increaseRetryCountForTask(id, category);
@@ -90,10 +90,12 @@ public class TaskExecutor {
             }
             isTaskRescheduled.put(id, true);
             applyRetryPolicy(id, retryCount, delayParams, category);
-            LogService.logger.info(String.format("Retry execute task with id: %s and category: '%s' started. Current attempt = %s",
+            LogService.logger.info(String.format("Retrying execute task with id: %s and category: '%s' started. Current attempt = %s",
                     id, category, retryCount + 1));
             return;
         }
+        LogService.logger.info(String.format("Failed to retry execute task with id: %s and category: '%s'",
+                id, category));
         taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
     }
 }

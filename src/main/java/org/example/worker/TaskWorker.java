@@ -51,7 +51,7 @@ public class TaskWorker implements Runnable {
                 try {
                     nextTask = taskService.getAndLockNextTaskByCategory(category);
                 } catch (Exception e) {
-                    LogService.logger.severe(e.getMessage());
+                    LogService.logger.severe("Table for category: '" + category + "' not found. " + e.getMessage());
                 }
                 if (nextTask != null) {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
