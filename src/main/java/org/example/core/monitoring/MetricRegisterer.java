@@ -22,12 +22,21 @@ public class MetricRegisterer {
         }
     }
 
+    /*
+     * Добавление новой метрики:
+     * Создать класс, либо изменить уже существующий;
+     * Добавить его в MetricsCollector;
+     * Добавить для MetricsCollector метод для получения из класса значения
+     * Добавить вызов метода MetricsCollector в стратегию: либо изменить класс, либо наследовать
+     * и написать всё по новой + добавить нужную проверку + добавить ещё один класс
+     */
+
     private void tryRegisterMBean(String category, MetricType metricType)
             throws MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
         objectName = buildObjectName(category, metricType);
         ObjectName name = new ObjectName(objectName);
-        MonitoringJmx jmx = new MonitoringJmx(category, metricType);
+        MonitoringJmx jmx = new MonitoringJmx(category, metricType, new WorkerTaskMetricStrategy());
         mbs.registerMBean(jmx, name);
     }
 

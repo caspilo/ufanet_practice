@@ -40,10 +40,10 @@ public class TaskWorkerPool {
 
         metricRegisterer.registerMetric(category, MetricType.WORKER_COUNT);
         metricRegisterer.registerMetric(category, MetricType.WORKER_AVERAGE_TIME_EXECUTION);
-        MetricsCollector.workerCreated(category);
+        WorkerMetrics.workerCreated(category);
     }
 
     public void deleteWorker(String category, int workerId) {
-        MetricsCollector.workerDeleted(category);
+        WorkerMetrics.workerDeleted(category);
     }
 }

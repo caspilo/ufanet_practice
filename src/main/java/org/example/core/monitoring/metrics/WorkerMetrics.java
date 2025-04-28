@@ -6,26 +6,26 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WorkerMetrics {
-    private final Map<String, Integer> workerCountByCategory = new ConcurrentHashMap<>();
-    private final AverageTimeCalculator averageTimeCalculator = new AverageTimeCalculator();
+    private static final Map<String, Integer> workerCountByCategory = new ConcurrentHashMap<>();
+    private static final AverageTimeCalculator averageTimeCalculator = new AverageTimeCalculator();
 
-    public void workerCreated(String category) {
+    public static void workerCreated(String category) {
         workerCountByCategory.merge(category, 1, Integer::sum);
     }
 
-    public void workerDeleted(String category) {
+    public static void workerDeleted(String category) {
         workerCountByCategory.merge(category, -1, Integer::sum);
     }
 
-    public void workerWaited(String category, long duration) {
+    public static void workerWaited(String category, long duration) {
         averageTimeCalculator.eventHappened(category, duration);
     }
 
-    public int getWorkerCountByCategory(String category) {
+    public static int getWorkerCountByCategory(String category) {
         return workerCountByCategory.get(category);
     }
 
-    public double getWorkerAverageWaitTimeByCategory(String category) {
+    public static double getWorkerAverageWaitTimeByCategory(String category) {
         return averageTimeCalculator.calculateAverageTimeByCategory(category);
     }
 }

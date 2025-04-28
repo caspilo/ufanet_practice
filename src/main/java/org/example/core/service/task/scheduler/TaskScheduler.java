@@ -44,7 +44,7 @@ public class TaskScheduler implements TaskSchedulerService {
             metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.SCHEDULED_TASK_COUNT);
             metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.FAILED_TASK_COUNT);
             metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.TASK_AVERAGE_TIME_EXECUTION);
-            MetricsCollector.taskScheduled(scheduleClass.getSimpleName());
+            TaskMetrics.taskScheduled(scheduleClass.getSimpleName());
         }
     }
 

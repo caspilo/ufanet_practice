@@ -3,7 +3,7 @@ package org.example.worker;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.MetricsCollector;
+import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.TaskExecutor;
 import org.example.core.service.task.TaskService;
@@ -37,7 +37,7 @@ public class TaskWorker implements Runnable {
                 ScheduledTask nextTask = taskService.getAndLockNextTaskByCategory(category);
                 if (nextTask != null) {
                     long workerWaitEndTime = System.currentTimeMillis();
-                    MetricsCollector.workerWaited(category, workerWaitEndTime - workerWaitStartTime);
+                    WorkerMetrics.workerWaited(category, workerWaitEndTime - workerWaitStartTime);
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             Thread.currentThread(), nextTask.getId(), category));
                     long executionStart = System.currentTimeMillis();
@@ -48,7 +48,7 @@ public class TaskWorker implements Runnable {
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been executed.",
                                 nextTask.getId(), category));
                         long executionEnd = System.currentTimeMillis();
-                        MetricsCollector.taskExecuted(category, executionEnd - executionStart);
+                        TaskMetrics.taskExecuted(category, executionEnd - executionStart);
                     } else {
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been failed.",
                                 nextTask.getId(), category));
