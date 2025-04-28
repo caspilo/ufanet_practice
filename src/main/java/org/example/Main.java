@@ -30,7 +30,7 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         RepositoryHolder.init(dataSource); // инициализация DataSource, репозиториев, сервисов
-        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricStrategy());
+        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricGetter());
         TaskSchedulerService taskScheduler = new TaskScheduler(metricRegisterer);
         TaskWorkerPool pool = new TaskWorkerPool(metricRegisterer);
 

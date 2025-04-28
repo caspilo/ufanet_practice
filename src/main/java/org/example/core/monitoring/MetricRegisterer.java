@@ -10,11 +10,11 @@ public class MetricRegisterer {
     private static final String BEAN_TYPE = "MonitoringJmxMBean";
 
     private final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-    private final GetMetricStrategy getMetricStrategy;
+    private final MetricGetter metricGetter;
     private String objectName;
 
-    public MetricRegisterer(GetMetricStrategy getMetricStrategy) {
-        this.getMetricStrategy = getMetricStrategy;
+    public MetricRegisterer(MetricGetter metricGetter) {
+        this.metricGetter = metricGetter;
     }
 
     public void registerMetric(String category, MetricType metricType) {
@@ -32,7 +32,7 @@ public class MetricRegisterer {
                 MBeanRegistrationException, NotCompliantMBeanException {
         objectName = buildObjectName(category, metricType);
         ObjectName name = new ObjectName(objectName);
-        MonitoringJmx jmx = new MonitoringJmx(category, metricType, getMetricStrategy);
+        MonitoringJmx jmx = new MonitoringJmx(category, metricType, metricGetter);
         mbs.registerMBean(jmx, name);
     }
 

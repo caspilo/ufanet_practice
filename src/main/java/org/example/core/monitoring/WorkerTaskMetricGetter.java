@@ -2,7 +2,7 @@ package org.example.core.monitoring;
 
 import org.example.core.monitoring.metrics.*;
 
-public class WorkerTaskMetricStrategy implements GetMetricStrategy {
+public class WorkerTaskMetricGetter implements MetricGetter {
     @Override
     public double getMetric(String category, MetricType metricType) {
         switch (metricType) {

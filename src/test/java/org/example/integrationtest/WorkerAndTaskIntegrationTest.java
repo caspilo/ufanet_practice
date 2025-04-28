@@ -18,7 +18,7 @@ public class WorkerAndTaskIntegrationTest {
 
     public static void main(String[] args) {
         initDataSource();
-        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricStrategy());
+        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricGetter());
         TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
                 setupCategories(), metricRegisterer);
         TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams(), metricRegisterer);
