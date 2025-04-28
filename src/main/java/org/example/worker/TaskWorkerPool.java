@@ -10,9 +10,10 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class TaskWorkerPool {
-    private final MetricRegisterer metricRegisterer = new MetricRegisterer();
+    private final MetricRegisterer metricRegisterer;
 
-    public TaskWorkerPool() {
+    public TaskWorkerPool(MetricRegisterer metricRegisterer) {
+        this.metricRegisterer = metricRegisterer;
     }
 
     public void initWorkers(Map<String, Integer> categoriesAndThreads) {

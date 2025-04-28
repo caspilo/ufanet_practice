@@ -1,7 +1,6 @@
 package org.example.core.service.task.scheduler;
 
-import org.example.core.entity.DelayParams;
-import org.example.core.entity.ScheduledTask;
+import org.example.core.entity.*;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
 import org.example.core.monitoring.*;
@@ -21,9 +20,10 @@ public class TaskScheduler implements TaskSchedulerService {
 
     private final DelayService delayService;
 
-    private final MetricRegisterer metricRegisterer = new MetricRegisterer();
+    private final MetricRegisterer metricRegisterer;
 
-    public TaskScheduler() {
+    public TaskScheduler(MetricRegisterer metricRegisterer) {
+        this.metricRegisterer = metricRegisterer;
         this.taskService = ServiceHolder.getTaskService();
         this.delayService = ServiceHolder.getDelayService();
     }

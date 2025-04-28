@@ -1,19 +1,13 @@
 package org.example.integrationtest;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
-import org.example.core.monitoring.mbean.MonitoringJmx;
-import org.example.core.schedulable.DoSomething;
-import org.example.core.schedulable.PushNotification;
-import org.example.core.schedulable.Schedulable;
+import org.example.core.monitoring.*;
+import org.example.core.schedulable.*;
 import org.example.holder.RepositoryHolder;
 
-import javax.management.*;
 import javax.sql.DataSource;
-import java.lang.management.ManagementFactory;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class WorkerAndTaskIntegrationTest {
     private static final int MAX_WORKER_THREADS = 3;
@@ -24,8 +18,10 @@ public class WorkerAndTaskIntegrationTest {
 
     public static void main(String[] args) {
         initDataSource();
-        TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS, setupCategories());
-        TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams());
+        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricStrategy());
+        TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
+                setupCategories(), metricRegisterer);
+        TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams(), metricRegisterer);
         workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
     }

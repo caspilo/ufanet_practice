@@ -1,5 +1,6 @@
 package org.example.integrationtest;
 
+import org.example.core.monitoring.MetricRegisterer;
 import org.example.worker.TaskWorkerPool;
 
 import java.time.LocalDateTime;
@@ -9,14 +10,16 @@ public class WorkerThreads extends TestThreads{
     private final int maxWorkerThreads;
     private final int minWorkerThreads;
     private final Map<Integer, String> categories;
-    private final TaskWorkerPool workerPool = new TaskWorkerPool();
+    private final TaskWorkerPool workerPool;
 
     public WorkerThreads(int maxWorkerThreads,
                          int minWorkerThreads,
-                         Map<Integer, String> categories) {
+                         Map<Integer, String> categories,
+                         MetricRegisterer metricRegisterer) {
         this.maxWorkerThreads = maxWorkerThreads;
         this.minWorkerThreads = minWorkerThreads;
         this.categories = categories;
+        this.workerPool = new TaskWorkerPool(metricRegisterer);
     }
 
     @Override

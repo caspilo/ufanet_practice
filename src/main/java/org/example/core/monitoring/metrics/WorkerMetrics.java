@@ -1,7 +1,5 @@
 package org.example.core.monitoring.metrics;
 
-import org.example.core.monitoring.MetricRegisterer;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 

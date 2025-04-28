@@ -3,6 +3,7 @@ package org.example;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
+import org.example.core.monitoring.*;
 import org.example.core.schedulable.DoSomething;
 import org.example.core.service.task.scheduler.Delay;
 import org.example.core.service.task.scheduler.TaskScheduler;
@@ -29,8 +30,9 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         RepositoryHolder.init(dataSource); // инициализация DataSource, репозиториев, сервисов
-        TaskSchedulerService taskScheduler = new TaskScheduler();
-        TaskWorkerPool pool = new TaskWorkerPool();
+        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricStrategy());
+        TaskSchedulerService taskScheduler = new TaskScheduler(metricRegisterer);
+        TaskWorkerPool pool = new TaskWorkerPool(metricRegisterer);
 
         Map<String, String> params = Map.of(
                 "ID", "4",
