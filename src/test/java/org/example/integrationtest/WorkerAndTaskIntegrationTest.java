@@ -3,7 +3,7 @@ package org.example.integrationtest;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.config.DataSourceConfig;
-import org.example.core.monitoring.mbean.Metrics;
+import org.example.core.monitoring.mbean.MonitoringJmx;
 import org.example.core.schedulable.DoSomething;
 import org.example.core.schedulable.PushNotification;
 import org.example.core.schedulable.Schedulable;
@@ -33,10 +33,12 @@ public class WorkerAndTaskIntegrationTest {
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
     }
 
-    private static void initJmxBean() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+    private static void initJmxBean()
+            throws MalformedObjectNameException, InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName("com.example:type=Metrics");
-        Metrics metrics = new Metrics();
+        ObjectName name = new ObjectName("org.example:type=MonitoringJmxMBean,name=MonitoringJmxMetrics");
+        MonitoringJmx metrics = new MonitoringJmx();
         mbs.registerMBean(metrics, name);
     }
 

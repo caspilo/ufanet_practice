@@ -2,7 +2,7 @@ package org.example.core.monitoring.mbean;
 
 import java.util.Map;
 
-public interface MetricsMBean {
+public interface MonitoringJmxMBean {
     Map<String, Integer> getScheduledTaskCount();
     Map<String, Integer> getFailedTaskCount();
     Map<String, Integer> getWorkerCountByCategory();

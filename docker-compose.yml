@@ -11,3 +11,34 @@ services:
       TZ: Asia/Yekaterinburg
     volumes:
       - ./db/data:/var/lib/mysql
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/grafana-storage:/var/lib/grafana
+
+  telegraf:
+    image: telegraf:1.7.0
+    container_name: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - grafana
+
+volumes:
+  grafana-storage: {}

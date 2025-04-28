@@ -4,7 +4,7 @@ import org.example.core.monitoring.metrics.MetricsCollector;
 
 import java.util.Map;
 
-public class Metrics implements MetricsMBean {
+public class MonitoringJmx implements MonitoringJmxMBean {
     @Override
     public Map<String, Integer> getScheduledTaskCount() {
         return MetricsCollector.getScheduledTaskCount();
