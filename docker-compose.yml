@@ -32,13 +32,5 @@ services:
     volumes:
       - ./grafana/grafana-storage:/var/lib/grafana
 
-  telegraf:
-    image: telegraf:1.7.0
-    container_name: telegraf
-    volumes:
-      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    depends_on:
-      - grafana
-
 volumes:
   grafana-storage: {}

@@ -1,5 +1,7 @@
 package org.example.core.monitoring.metrics;
 
+import org.example.core.monitoring.MetricRegisterer;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,11 +21,11 @@ public class WorkerMetrics {
         averageTimeCalculator.eventHappened(category, duration);
     }
 
-    public Map<String, Integer> getWorkerCountByCategory() {
-        return workerCountByCategory;
+    public int getWorkerCountByCategory(String category) {
+        return workerCountByCategory.get(category);
     }
 
-    public Map<String, Double> getWorkerAverageWaitTime() {
-        return averageTimeCalculator.calculateAverageTime();
+    public double getWorkerAverageWaitTimeByCategory(String category) {
+        return averageTimeCalculator.calculateAverageTimeByCategory(category);
     }
 }

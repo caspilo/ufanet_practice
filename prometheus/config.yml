@@ -1,3 +1,0 @@
-whitelist: ["org.example:*"]
-rules:
-  - pattern: "org.example:*"

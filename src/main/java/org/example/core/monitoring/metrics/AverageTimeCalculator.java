@@ -12,12 +12,7 @@ public class AverageTimeCalculator {
         summaryTime.merge(category, duration, Long::sum);
     }
 
-    public Map<String, Double> calculateAverageTime() {
-        Map<String, Double> averageTimeByCategory = new HashMap<>();
-        for (var category : summaryCount.keySet()) {
-            double averageTime = (double) summaryTime.get(category) / summaryCount.get(category);
-            averageTimeByCategory.put(category, averageTime);
-        }
-        return averageTimeByCategory;
+    public double calculateAverageTimeByCategory(String category) {
+        return (double) summaryTime.get(category) / summaryCount.get(category);
     }
 }

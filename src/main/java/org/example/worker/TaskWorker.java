@@ -3,7 +3,7 @@ package org.example.worker;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.metrics.MetricsCollector;
+import org.example.core.monitoring.MetricsCollector;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.TaskExecutor;
 import org.example.core.service.task.TaskService;

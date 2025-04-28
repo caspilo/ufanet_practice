@@ -4,7 +4,8 @@ import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.metrics.MetricsCollector;
+import org.example.core.monitoring.*;
+import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
@@ -19,6 +20,8 @@ public class TaskScheduler implements TaskSchedulerService {
     private final TaskService taskService;
 
     private final DelayService delayService;
+
+    private final MetricRegisterer metricRegisterer = new MetricRegisterer();
 
     public TaskScheduler() {
         this.taskService = ServiceHolder.getTaskService();
@@ -38,6 +41,9 @@ public class TaskScheduler implements TaskSchedulerService {
             LogService.logger.log(Level.SEVERE, "Process schedule task failed. " + e.getMessage(), e);
             return null;
         } finally {
+            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.SCHEDULED_TASK_COUNT);
+            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.FAILED_TASK_COUNT);
+            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.TASK_AVERAGE_TIME_EXECUTION);
             MetricsCollector.taskScheduled(scheduleClass.getSimpleName());
         }
     }

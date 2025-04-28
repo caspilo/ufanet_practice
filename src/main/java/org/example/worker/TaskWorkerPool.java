@@ -1,7 +1,8 @@
 package org.example.worker;
 
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.metrics.MetricsCollector;
+import org.example.core.monitoring.*;
+import org.example.core.monitoring.metrics.*;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -9,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class TaskWorkerPool {
+    private final MetricRegisterer metricRegisterer = new MetricRegisterer();
 
     public TaskWorkerPool() {
     }
@@ -35,6 +37,9 @@ public class TaskWorkerPool {
 
         threadPool.submit(new TaskWorker(category));
         LogService.logger.info(String.format("Worker initializing with category %s, with %s thread(s) %s", category, threadsCount, threadPool));
+
+        metricRegisterer.registerMetric(category, MetricType.WORKER_COUNT);
+        metricRegisterer.registerMetric(category, MetricType.WORKER_AVERAGE_TIME_EXECUTION);
         MetricsCollector.workerCreated(category);
     }
 

@@ -10,6 +10,7 @@ public class TaskMetrics {
 
     public void taskScheduled(String category) {
         scheduledTaskCount.merge(category, 1, Integer::sum);
+        failedTaskCount.put(category, 0);
     }
 
     public void taskFailed(String category) {
@@ -20,15 +21,15 @@ public class TaskMetrics {
         averageTimeCalculator.eventHappened(category, duration);
     }
 
-    public Map<String, Integer> getScheduledTaskCount() {
-        return scheduledTaskCount;
+    public int getScheduledTaskCountByCategory(String category) {
+        return scheduledTaskCount.get(category);
     }
 
-    public Map<String, Integer> getFailedTaskCount() {
-        return failedTaskCount;
+    public int getFailedTaskCountByCategory(String category) {
+        return failedTaskCount.get(category);
     }
 
-    public Map<String, Double> getTaskAverageExecutionTime() {
-        return averageTimeCalculator.calculateAverageTime();
+    public double getTaskAverageExecutionTimeByCategory(String category) {
+        return averageTimeCalculator.calculateAverageTimeByCategory(category);
     }
 }

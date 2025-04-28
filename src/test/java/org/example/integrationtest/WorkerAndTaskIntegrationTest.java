@@ -22,24 +22,12 @@ public class WorkerAndTaskIntegrationTest {
     private static final int TASK_THREAD_COUNT = 5;
     private static final int BOUND_MILLIS_TO_SLEEP = 10000;
 
-    public static void main(String[] args)
-            throws MalformedObjectNameException, NotCompliantMBeanException,
-            InstanceAlreadyExistsException, MBeanRegistrationException {
+    public static void main(String[] args) {
         initDataSource();
-        initJmxBean();
         TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS, setupCategories());
         TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams());
         workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
-    }
-
-    private static void initJmxBean()
-            throws MalformedObjectNameException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, NotCompliantMBeanException {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName("org.example:type=MonitoringJmxMBean,name=MonitoringJmxMetrics");
-        MonitoringJmx metrics = new MonitoringJmx();
-        mbs.registerMBean(metrics, name);
     }
 
     private static void initDataSource() {
