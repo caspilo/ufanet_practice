@@ -1,23 +1,17 @@
 package org.example;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
 import org.example.core.monitoring.*;
 import org.example.core.monitoring.metrics.*;
-import org.example.core.schedulable.DoSomething;
-import org.example.core.schedulable.Schedulable;
-import org.example.core.service.task.scheduler.Delay;
-import org.example.core.service.task.scheduler.TaskScheduler;
-import org.example.core.service.task.scheduler.TaskSchedulerService;
-import org.example.core.schedulable.PushNotification;
+import org.example.core.schedulable.*;
+import org.example.core.service.task.scheduler.*;
 import org.example.holder.RepositoryHolder;
 import org.example.worker.TaskWorkerPool;
 
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-
 import java.util.*;
 
 public class Main {
