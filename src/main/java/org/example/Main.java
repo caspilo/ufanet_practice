@@ -6,6 +6,7 @@ import org.example.config.DataSourceConfig;
 import org.example.core.monitoring.*;
 import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.DoSomething;
+import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.scheduler.Delay;
 import org.example.core.service.task.scheduler.TaskScheduler;
 import org.example.core.service.task.scheduler.TaskSchedulerService;
@@ -44,8 +45,8 @@ public class Main {
         taskScheduler.scheduleTask(DoSomething.class, params, executionTime, defaultDelayParams);
         taskScheduler.scheduleTask(PushNotification.class, params, executionTime, defaultDelayParams);
 
-        pool.initWorker("PushNotification", 1);
-        pool.initWorker("PushNotification", 1);
+        pool.initWorkers(Map.of(PushNotification.class, 2));
+        pool.initWorkers(Map.of(DoSomething.class, 1));
     }
 
     private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {

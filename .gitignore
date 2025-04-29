@@ -38,3 +38,4 @@ build/
 ТЗ.md
 db
 task_application_log**
+/logs

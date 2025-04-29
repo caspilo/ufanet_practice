@@ -1,13 +1,15 @@
 package org.example.core.service.task.scheduler;
 
-import org.example.core.entity.*;
+import org.example.core.entity.DelayParams;
+import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.*;
-import org.example.core.monitoring.metrics.*;
+import org.example.core.monitoring.MetricRegisterer;
+import org.example.core.monitoring.metrics.TaskMetrics;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
+import org.example.core.validator.DelayValidator;
 import org.example.holder.ServiceHolder;
 
 import java.sql.Timestamp;
@@ -29,16 +31,19 @@ public class TaskScheduler implements TaskSchedulerService {
     }
 
     @Override
-    public Long scheduleTask(Class<? extends Schedulable> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
+    public <T extends Schedulable> Long scheduleTask(Class<T> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
-            LogService.logger.info("Process scheduleTask started");
-            validateParams(delay);
+            LogService.logger.info("Process scheduleTask for '" + scheduleClass.getName() + "' started");
+            if (!DelayValidator.validateParams(delay)) {
+                throw new RuntimeException("Delay params validation failed");
+            }
             ScheduledTask savedTask = createAndSaveTask(scheduleClass, params, executionTime);
             createAndSaveDelayParams(delay, savedTask);
+
             LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + savedTask.getId());
             return savedTask.getId();
         } catch (Exception e) {
-            LogService.logger.log(Level.SEVERE, "Process schedule task failed. " + e.getMessage(), e);
+            LogService.logger.severe("Process schedule task failed. " + e.getMessage());
             return null;
         } finally {
             metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.SCHEDULED_TASK_COUNT);
@@ -48,31 +53,14 @@ public class TaskScheduler implements TaskSchedulerService {
         }
     }
 
-    private void validateParams(Delay delay) {
-        if (delay.getMaxRetryCount() < 0) {
-            throw new RuntimeException("Incorrect value of parameter maxRetryCount = " + delay.getMaxRetryCount() + ". Value can`t be < 0");
-        }
-        if (delay.getDelayLimit() < 0) {
-            throw new RuntimeException("Incorrect value for parameter delayLimit = " + delay.getDelayLimit() + ". Value can`t be < 0");
-        }
-        if (delay.getDelayBase() < 0) {
-            throw new RuntimeException("Incorrect value for parameter delayBase = " + delay.getDelayBase() + ". Value can`t be < 0");
-        }
-        if (delay.getFixDelayValue() < 0) {
-            throw new RuntimeException("Incorrect value for parameter fixDelayValue = " + delay.getFixDelayValue() + ". Value can`t be < 0");
-        }
-    }
-
-    private ScheduledTask createAndSaveTask(Class<? extends Schedulable> scheduleClass,
-                                            Map<String, String> params, String executionTime) {
+    private <T extends Schedulable> ScheduledTask createAndSaveTask(Class<T> scheduleClass, Map<String, String> params, String executionTime) {
         ScheduledTask task = new ScheduledTask();
         String category = scheduleClass.getSimpleName();
         task.setCategory(category);
-        task.setCanonicalName(scheduleClass.getCanonicalName());
+        task.setCanonicalName(scheduleClass.getName());
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
-        Long id = taskService.save(task, category);
-        task.setId(id);
+        task.setId(taskService.save(task, category));
         return task;
     }
 
@@ -94,7 +82,7 @@ public class TaskScheduler implements TaskSchedulerService {
         try {
             tryToCancelTask(id, category, task);
         } catch (Exception e) {
-            LogService.logger.log(Level.SEVERE, String.format("Process cancel task with id: %s and category: '%s' has been failed. ", id, category) + e.getMessage(), e);
+            LogService.logger.severe(String.format("Process cancel task with id: %s and category: '%s' has been failed. ", id, category) + e.getMessage());
         }
     }
 

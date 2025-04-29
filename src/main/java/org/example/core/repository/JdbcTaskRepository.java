@@ -86,7 +86,7 @@ public class JdbcTaskRepository implements TaskRepository {
                 "    category VARCHAR(50) NOT NULL,\n" +
                 "    canonical_name VARCHAR(255) NOT NULL,\n" +
                 "    params JSON NOT NULL,\n" +
-                "    status ENUM('PENDING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\n" +
+                "    status ENUM('PENDING','RETRYING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\n" +
                 "    execution_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" +
                 "    retry_count INT DEFAULT 0\n);";
 
@@ -266,8 +266,8 @@ public class JdbcTaskRepository implements TaskRepository {
                     return null;
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Task locking error. ", e);
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Task locking error. %s", e));
         }
     }
 
