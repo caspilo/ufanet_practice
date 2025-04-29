@@ -3,6 +3,7 @@ package org.example.integrationtest;
 import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
 import org.example.core.monitoring.*;
+import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.*;
 import org.example.holder.RepositoryHolder;
 
@@ -18,12 +19,23 @@ public class WorkerAndTaskIntegrationTest {
 
     public static void main(String[] args) {
         initDataSource();
-        MetricRegisterer metricRegisterer = new MetricRegisterer(new WorkerTaskMetricGetter());
+        Map<MetricType, MetricHandler> metricHandlers = createAndSetupMetricHandlers();
+        MetricRegisterer metricRegisterer = new MetricRegisterer(metricHandlers);
         TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
                 setupCategories(), metricRegisterer);
         TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams(), metricRegisterer);
         workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+    }
+
+    private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {
+        Map<MetricType, MetricHandler> metricHandlers = new HashMap<>();
+        metricHandlers.put(MetricType.FAILED_TASK_COUNT, TaskMetrics::getFailedTaskCountByCategory);
+        metricHandlers.put(MetricType.TASK_AVERAGE_TIME_EXECUTION, TaskMetrics::getTaskAverageExecutionTimeByCategory);
+        metricHandlers.put(MetricType.SCHEDULED_TASK_COUNT, TaskMetrics::getScheduledTaskCountByCategory);
+        metricHandlers.put(MetricType.WORKER_COUNT, WorkerMetrics::getWorkerCountByCategory);
+        metricHandlers.put(MetricType.WORKER_AVERAGE_TIME_EXECUTION, WorkerMetrics::getWorkerAverageWaitTimeByCategory);
+        return metricHandlers;
     }
 
     private static void initDataSource() {

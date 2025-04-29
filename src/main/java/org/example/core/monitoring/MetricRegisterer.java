@@ -5,16 +5,17 @@ import org.example.core.monitoring.metrics.MetricType;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
+import java.util.Map;
 
 public class MetricRegisterer {
     private static final String BEAN_TYPE = "MonitoringJmxMBean";
 
     private final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-    private final MetricGetter metricGetter;
+    private final Map<MetricType, MetricHandler> metricHandler;
     private String objectName;
 
-    public MetricRegisterer(MetricGetter metricGetter) {
-        this.metricGetter = metricGetter;
+    public MetricRegisterer(Map<MetricType, MetricHandler> metricHandler) {
+        this.metricHandler = metricHandler;
     }
 
     public void registerMetric(String category, MetricType metricType) {
@@ -32,7 +33,7 @@ public class MetricRegisterer {
                 MBeanRegistrationException, NotCompliantMBeanException {
         objectName = buildObjectName(category, metricType);
         ObjectName name = new ObjectName(objectName);
-        MonitoringJmx jmx = new MonitoringJmx(category, metricType, metricGetter);
+        MonitoringJmx jmx = new MonitoringJmx(category, metricType, metricHandler);
         mbs.registerMBean(jmx, name);
     }
 
