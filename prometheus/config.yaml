@@ -1,0 +1,3 @@
+includeObjectNames: ["org.example:*"]
+rules:
+  - pattern: 'org.example<type=(\w+), name=(\w+)><>Value: (\d+)'

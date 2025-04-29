@@ -1,6 +1,8 @@
 package org.example.worker;
 
 import org.example.core.logging.LogService;
+import org.example.core.monitoring.*;
+import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 
 import java.util.Collections;
@@ -11,10 +13,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class TaskWorkerPool {
+    private final MetricRegisterer metricRegisterer;
     private final Map<String, UUID> categoriesAndIdWorkers = new HashMap<>();
     private final Map<Map<String, UUID>, TaskWorker> taskWorkerMap = new HashMap<>();
 
-    public TaskWorkerPool() {
+    public TaskWorkerPool(MetricRegisterer metricRegisterer) {
+        this.metricRegisterer = metricRegisterer;
     }
 
     public <T extends Schedulable> void initWorkers(Map<Class<T>, Integer> categoriesAndThreads) {
@@ -49,11 +53,13 @@ public class TaskWorkerPool {
             }
             LogService.logger.info(String.format("Worker pool initializing with for category: '%s', with %s thread(s) %s",
                     category, threadsCount, threadPool));
+            metricRegisterer.registerMetric(category, MetricType.WORKER_COUNT);
+            metricRegisterer.registerMetric(category, MetricType.WORKER_AVERAGE_TIME_EXECUTION);
+            WorkerMetrics.workerCreated(category);
         } catch (Exception e) {
             LogService.logger.severe(String.format("Worker with category: '%s' initializing failed. ", taskClass.getSimpleName()) + e.getMessage());
         }
     }
-
 
     public void stopWorker(String category, UUID workerId) {
         try {
@@ -65,6 +71,7 @@ public class TaskWorkerPool {
             } else {
                 LogService.logger.warning(String.format("Worker with id: %s and category: '%s' not found", workerId, category));
             }
+            WorkerMetrics.workerDeleted(category);
         } catch (Exception e) {
             LogService.logger.severe(String.format("Failed to stop worker with id: %s and category: '%s'. ", workerId, category) + e.getMessage());
         }

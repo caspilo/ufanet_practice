@@ -1,16 +1,14 @@
 package org.example.integrationtest;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
-import org.example.core.schedulable.DoSomething;
-import org.example.core.schedulable.PushNotification;
-import org.example.core.schedulable.Schedulable;
+import org.example.core.monitoring.*;
+import org.example.core.monitoring.metrics.*;
+import org.example.core.schedulable.*;
 import org.example.holder.RepositoryHolder;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class WorkerAndTaskIntegrationTest {
     private static final int MAX_WORKER_THREADS = 3;
@@ -21,10 +19,23 @@ public class WorkerAndTaskIntegrationTest {
 
     public static void main(String[] args) {
         initDataSource();
-        TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS, setupCategories());
-        TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams());
+        Map<MetricType, MetricHandler> metricHandlers = createAndSetupMetricHandlers();
+        MetricRegisterer metricRegisterer = new MetricRegisterer(metricHandlers);
+        TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
+                setupClasses(), metricRegisterer);
+        TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams(), metricRegisterer);
         workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+    }
+
+    private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {
+        Map<MetricType, MetricHandler> metricHandlers = new HashMap<>();
+        metricHandlers.put(MetricType.FAILED_TASK_COUNT, TaskMetrics::getFailedTaskCountByCategory);
+        metricHandlers.put(MetricType.TASK_AVERAGE_TIME_EXECUTION, TaskMetrics::getTaskAverageExecutionTimeByCategory);
+        metricHandlers.put(MetricType.SCHEDULED_TASK_COUNT, TaskMetrics::getScheduledTaskCountByCategory);
+        metricHandlers.put(MetricType.WORKER_COUNT, WorkerMetrics::getWorkerCountByCategory);
+        metricHandlers.put(MetricType.WORKER_AVERAGE_TIME_EXECUTION, WorkerMetrics::getWorkerAverageWaitTimeByCategory);
+        return metricHandlers;
     }
 
     private static void initDataSource() {
@@ -38,13 +49,6 @@ public class WorkerAndTaskIntegrationTest {
         config.setUsername(DataSourceConfig.username);
         config.setPassword(DataSourceConfig.password);
         return new HikariDataSource(config);
-    }
-
-    private static Map<Integer, String> setupCategories() {
-        Map<Integer, String> categories = new HashMap<>();
-        categories.put(0, "PushNotification");
-        categories.put(1, "DoSomething");
-        return categories;
     }
 
     private static Map<Integer, Class<? extends Schedulable>> setupClasses() {

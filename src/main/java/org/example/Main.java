@@ -1,22 +1,18 @@
 package org.example;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
-import org.example.core.schedulable.DoSomething;
-import org.example.core.schedulable.Schedulable;
-import org.example.core.service.task.scheduler.Delay;
-import org.example.core.service.task.scheduler.TaskScheduler;
-import org.example.core.service.task.scheduler.TaskSchedulerService;
-import org.example.core.schedulable.PushNotification;
+import org.example.core.monitoring.*;
+import org.example.core.monitoring.metrics.*;
+import org.example.core.schedulable.*;
+import org.example.core.service.task.scheduler.*;
 import org.example.holder.RepositoryHolder;
 import org.example.worker.TaskWorkerPool;
 
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-
-import java.util.Map;
+import java.util.*;
 
 public class Main {
 
@@ -30,8 +26,10 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         RepositoryHolder.init(dataSource); // инициализация DataSource, репозиториев, сервисов
-        TaskSchedulerService taskScheduler = new TaskScheduler();
-        TaskWorkerPool pool = new TaskWorkerPool();
+        Map<MetricType, MetricHandler> metricHandlers = createAndSetupMetricHandlers();
+        MetricRegisterer metricRegisterer = new MetricRegisterer(metricHandlers);
+        TaskSchedulerService taskScheduler = new TaskScheduler(metricRegisterer);
+        TaskWorkerPool pool = new TaskWorkerPool(metricRegisterer);
 
         Map<String, String> params = Map.of(
                 "ID", "4",
@@ -43,5 +41,15 @@ public class Main {
 
         pool.initWorkers(Map.of(PushNotification.class, 2));
         pool.initWorkers(Map.of(DoSomething.class, 1));
+    }
+
+    private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {
+        Map<MetricType, MetricHandler> metricHandlers = new HashMap<>();
+        metricHandlers.put(MetricType.FAILED_TASK_COUNT, TaskMetrics::getFailedTaskCountByCategory);
+        metricHandlers.put(MetricType.TASK_AVERAGE_TIME_EXECUTION, TaskMetrics::getTaskAverageExecutionTimeByCategory);
+        metricHandlers.put(MetricType.SCHEDULED_TASK_COUNT, TaskMetrics::getScheduledTaskCountByCategory);
+        metricHandlers.put(MetricType.WORKER_COUNT, WorkerMetrics::getWorkerCountByCategory);
+        metricHandlers.put(MetricType.WORKER_AVERAGE_TIME_EXECUTION, WorkerMetrics::getWorkerAverageWaitTimeByCategory);
+        return metricHandlers;
     }
 }

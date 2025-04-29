@@ -38,7 +38,6 @@ public class JdbcTaskRepository implements TaskRepository {
         return findById(id, category) != null;
     }
 
-
     @Override
     public Long save(ScheduledTask task, String category) {
 

@@ -1,5 +1,6 @@
 package org.example.integrationtest;
 
+import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.scheduler.Delay;
 import org.example.core.service.task.scheduler.TaskScheduler;
@@ -10,14 +11,15 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 public class TaskThreads extends TestThreads {
-    private final TaskSchedulerService taskScheduler = new TaskScheduler();
+    private final TaskSchedulerService taskScheduler;
     private final Map<Integer, Class<? extends Schedulable>> classes;
     private final Map<String, String> params;
 
     public TaskThreads(Map<Integer, Class<? extends Schedulable>> classes,
-                       Map<String, String> params) {
+                       Map<String, String> params, MetricRegisterer metricRegisterer) {
         this.classes = classes;
         this.params = params;
+        this.taskScheduler = new TaskScheduler(metricRegisterer);
     }
 
     @Override
