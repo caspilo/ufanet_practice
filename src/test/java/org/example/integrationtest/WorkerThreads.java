@@ -1,6 +1,7 @@
 package org.example.integrationtest;
 
 import org.example.core.monitoring.MetricRegisterer;
+import org.example.core.schedulable.Schedulable;
 import org.example.worker.TaskWorkerPool;
 
 import java.time.LocalDateTime;
@@ -9,12 +10,12 @@ import java.util.Map;
 public class WorkerThreads extends TestThreads{
     private final int maxWorkerThreads;
     private final int minWorkerThreads;
-    private final Map<Integer, String> categories;
+    private final Map<Integer, Class<? extends Schedulable>> categories;
     private final TaskWorkerPool workerPool;
 
     public WorkerThreads(int maxWorkerThreads,
                          int minWorkerThreads,
-                         Map<Integer, String> categories,
+                         Map<Integer, Class<? extends Schedulable>> categories,
                          MetricRegisterer metricRegisterer) {
         this.maxWorkerThreads = maxWorkerThreads;
         this.minWorkerThreads = minWorkerThreads;
@@ -39,13 +40,15 @@ public class WorkerThreads extends TestThreads{
     }
 
     private void initWorkerWithRandomValues() {
-        String randomCategory = categories.get(RANDOM.nextInt(categories.size()));
+        Class<? extends Schedulable> randomCategory =
+                categories.get(RANDOM.nextInt(categories.size()));
         int randomThreadCount = RANDOM.nextInt(maxWorkerThreads) + minWorkerThreads;
         workerPool.initWorker(randomCategory, randomThreadCount);
         printWorkerInfo(randomCategory, randomThreadCount);
     }
 
-    private static void printWorkerInfo(String randomCategory, int randomThreadCount) {
+    private static void printWorkerInfo(Class<? extends Schedulable> randomCategory,
+                                        int randomThreadCount) {
         System.out.println("Создан новый Worker:" +
                 "\nКатегория - " + randomCategory +
                 "\nКол-во потоков - " + randomThreadCount +

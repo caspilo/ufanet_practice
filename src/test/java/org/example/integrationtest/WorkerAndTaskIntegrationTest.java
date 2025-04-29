@@ -22,7 +22,7 @@ public class WorkerAndTaskIntegrationTest {
         Map<MetricType, MetricHandler> metricHandlers = createAndSetupMetricHandlers();
         MetricRegisterer metricRegisterer = new MetricRegisterer(metricHandlers);
         TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
-                setupCategories(), metricRegisterer);
+                setupClasses(), metricRegisterer);
         TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams(), metricRegisterer);
         workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
         taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
@@ -49,13 +49,6 @@ public class WorkerAndTaskIntegrationTest {
         config.setUsername(DataSourceConfig.username);
         config.setPassword(DataSourceConfig.password);
         return new HikariDataSource(config);
-    }
-
-    private static Map<Integer, String> setupCategories() {
-        Map<Integer, String> categories = new HashMap<>();
-        categories.put(0, "PushNotification");
-        categories.put(1, "DoSomething");
-        return categories;
     }
 
     private static Map<Integer, Class<? extends Schedulable>> setupClasses() {
