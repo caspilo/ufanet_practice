@@ -1,4 +1,4 @@
-package org.example.integrationtest;
+package org.example.integrationtest.worker;
 
 import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.Schedulable;
@@ -7,14 +7,15 @@ import org.example.worker.TaskWorkerPool;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class WorkerThreads extends TestThreads{
+public class WorkerManager {
+    private static final Random RANDOM = new Random();
+
     private final int maxWorkerThreads;
     private final int minWorkerThreads;
     private final Map<Integer, Class<? extends Schedulable>> categories;
     private final TaskWorkerPool workerPool;
 
-    public WorkerThreads(int maxWorkerThreads,
-                         int minWorkerThreads,
+    public WorkerManager(int maxWorkerThreads, int minWorkerThreads,
                          Map<Integer, Class<? extends Schedulable>> categories,
                          MetricRegisterer metricRegisterer) {
         this.maxWorkerThreads = maxWorkerThreads;
@@ -23,27 +24,7 @@ public class WorkerThreads extends TestThreads{
         this.workerPool = new TaskWorkerPool(metricRegisterer);
     }
 
-    @Override
-    public Thread[] initGeneratingThreads(int threadCount, int boundMillisToSleep) {
-        Thread[] workerThreads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            workerThreads[i] = new Thread(() -> {
-                while(true) {
-                    if (RANDOM.nextBoolean()) {
-                        initRandomWorker();
-                    } else {
-                        stopRandomWorker();
-                    }
-                    sleep(boundMillisToSleep);
-                }
-            });
-            workerThreads[i].setName("Worker-" + i);
-            workerThreads[i].start();
-        }
-        return workerThreads;
-    }
-
-    private void initRandomWorker() {
+    public void initRandomWorker() {
         Class<? extends Schedulable> randomCategory =
                 categories.get(RANDOM.nextInt(categories.size()));
         int randomThreadCount = RANDOM.nextInt(maxWorkerThreads) + minWorkerThreads;
@@ -59,7 +40,7 @@ public class WorkerThreads extends TestThreads{
                 "\nДата создания - " + LocalDateTime.now());
     }
 
-    private void stopRandomWorker() {
+    public void stopRandomWorker() {
         String randomCategory = categories
                 .get(RANDOM.nextInt(categories.size()))
                 .getSimpleName();

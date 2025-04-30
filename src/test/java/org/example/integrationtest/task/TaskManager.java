@@ -1,4 +1,4 @@
-package org.example.integrationtest;
+package org.example.integrationtest.task;
 
 import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.Schedulable;
@@ -9,40 +9,23 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class TaskThreads extends TestThreads {
+public class TaskManager {
+    private static final Random RANDOM = new Random();
+
     private final TaskSchedulerService taskScheduler;
     private final Map<Integer, Class<? extends Schedulable>> classes;
     private final Map<String, String> params;
     private final Map<String, List<Long>> tasksId = new ConcurrentHashMap<>();
 
-    public TaskThreads(Map<Integer, Class<? extends Schedulable>> classes,
-                       Map<String, String> params, MetricRegisterer metricRegisterer) {
+    public TaskManager(Map<Integer, Class<? extends Schedulable>> classes,
+                       Map<String, String> params,
+                       MetricRegisterer metricRegisterer) {
+        this.taskScheduler = new TaskScheduler(metricRegisterer);
         this.classes = classes;
         this.params = params;
-        this.taskScheduler = new TaskScheduler(metricRegisterer);
     }
 
-    @Override
-    public Thread[] initGeneratingThreads(int threadCount, int boundMillisToSleep) {
-        Thread[] taskThreads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            taskThreads[i] = new Thread(() -> {
-                while (true) {
-                    if (RANDOM.nextBoolean()) {
-                       initRandomTask();
-                    } else {
-                        stopRandomTask();
-                    }
-                    sleep(boundMillisToSleep);
-                }
-            });
-            taskThreads[i].setName("Task-" + i);
-            taskThreads[i].start();
-        }
-        return taskThreads;
-    }
-
-    private void initRandomTask() {
+    public void initRandomTask() {
         Class<? extends Schedulable> randomClass = classes.get(RANDOM.nextInt(classes.size()));
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
         Delay defaultDelayParams = new Delay.DelayBuilder().build();
@@ -76,7 +59,7 @@ public class TaskThreads extends TestThreads {
                 "\nДата создания - " + LocalDateTime.now());
     }
 
-    private void stopRandomTask() {
+    public void stopRandomTask() {
         String randomCategory = classes.get(RANDOM.nextInt(classes.size())).getSimpleName();
         List<Long> tasksIdByCategory = tasksId.get(randomCategory);
         if (tasksIdByCategory != null) {
