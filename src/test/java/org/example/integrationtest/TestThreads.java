@@ -13,5 +13,5 @@ public abstract class TestThreads {
         }
     }
 
-    public abstract Thread[] initThreads(int threadCount, int boundMillisToSleep);
+    public abstract Thread[] initGeneratingThreads(int threadCount, int boundMillisToSleep);
 }

@@ -2,18 +2,18 @@ package org.example.integrationtest;
 
 import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.Schedulable;
-import org.example.core.service.task.scheduler.Delay;
-import org.example.core.service.task.scheduler.TaskScheduler;
-import org.example.core.service.task.scheduler.TaskSchedulerService;
+import org.example.core.service.task.scheduler.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class TaskThreads extends TestThreads {
     private final TaskSchedulerService taskScheduler;
     private final Map<Integer, Class<? extends Schedulable>> classes;
     private final Map<String, String> params;
+    private final Map<String, List<Long>> tasksId = new ConcurrentHashMap<>();
 
     public TaskThreads(Map<Integer, Class<? extends Schedulable>> classes,
                        Map<String, String> params, MetricRegisterer metricRegisterer) {
@@ -23,12 +23,16 @@ public class TaskThreads extends TestThreads {
     }
 
     @Override
-    public Thread[] initThreads(int threadCount, int boundMillisToSleep) {
+    public Thread[] initGeneratingThreads(int threadCount, int boundMillisToSleep) {
         Thread[] taskThreads = new Thread[threadCount];
         for (int i = 0; i < threadCount; i++) {
             taskThreads[i] = new Thread(() -> {
                 while (true) {
-                    initRandomTask();
+                    if (RANDOM.nextBoolean()) {
+                       initRandomTask();
+                    } else {
+                        stopRandomTask();
+                    }
                     sleep(boundMillisToSleep);
                 }
             });
@@ -42,17 +46,51 @@ public class TaskThreads extends TestThreads {
         Class<? extends Schedulable> randomClass = classes.get(RANDOM.nextInt(classes.size()));
         String executionTime = Timestamp.valueOf(LocalDateTime.now()).toString();
         Delay defaultDelayParams = new Delay.DelayBuilder().build();
-        taskScheduler.scheduleTask(randomClass, params, executionTime, defaultDelayParams);
-        printTaskInfo(randomClass, executionTime);
+        Long taskId = scheduleTask(randomClass, executionTime, defaultDelayParams);
+        putInTasksId(randomClass, taskId);
+        printScheduledTaskInfo(randomClass.getSimpleName(), executionTime);
     }
 
-    private static void printTaskInfo(Class<? extends Schedulable> randomClass,
-                                      String executionTime) {
-        String className = randomClass.getName();
+    private Long scheduleTask(Class<? extends Schedulable> randomClass, String executionTime, Delay defaultDelayParams) {
+        return taskScheduler.scheduleTask(randomClass, params, executionTime, defaultDelayParams)
+                .orElseThrow(() -> new RuntimeException("Could not schedule task with category: " +
+                        randomClass.getSimpleName() + " and delay params: " +
+                        defaultDelayParams.toString()));
+    }
+
+    private void putInTasksId(Class<? extends Schedulable> randomClass, Long taskId) {
+        if (tasksId.containsKey(randomClass.getSimpleName())) {
+            tasksId.get(randomClass.getSimpleName()).add(taskId);
+        } else {
+            List<Long> taskIds = new CopyOnWriteArrayList<>();
+            taskIds.add(taskId);
+            tasksId.put(randomClass.getSimpleName(), taskIds);
+        }
+    }
+
+    private void printScheduledTaskInfo(String className, String executionTime) {
         System.out.println("Создан новый Task:" +
                 "\nКласс - " + className +
                 "\nВремя выполнения - " + executionTime +
                 "\nИмя потока - " + Thread.currentThread().getName() +
                 "\nДата создания - " + LocalDateTime.now());
+    }
+
+    private void stopRandomTask() {
+        String randomCategory = classes.get(RANDOM.nextInt(classes.size())).getSimpleName();
+        List<Long> tasksIdByCategory = tasksId.get(randomCategory);
+        if (tasksIdByCategory != null) {
+            Long randomTaskId = tasksIdByCategory.get(RANDOM.nextInt(tasksIdByCategory.size()));
+            taskScheduler.cancelTask(randomTaskId, randomCategory);
+            printStoppedTaskInfo(randomCategory, randomTaskId);
+        }
+    }
+
+    private void printStoppedTaskInfo(String className, Long taskId) {
+        System.out.println("Отменён task:" +
+                "\nTask id: " + taskId +
+                "\nКласс - " + className +
+                "\nИмя потока - " + Thread.currentThread().getName() +
+                "\nДата отмены - " + LocalDateTime.now());
     }
 }

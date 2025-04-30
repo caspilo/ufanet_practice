@@ -24,8 +24,8 @@ public class WorkerAndTaskIntegrationTest {
         TestThreads workerThreads = new WorkerThreads(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
                 setupClasses(), metricRegisterer);
         TestThreads taskThreads = new TaskThreads(setupClasses(), setupParams(), metricRegisterer);
-        workerThreads.initThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
-        taskThreads.initThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+        workerThreads.initGeneratingThreads(WORKER_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
+        taskThreads.initGeneratingThreads(TASK_THREAD_COUNT, BOUND_MILLIS_TO_SLEEP);
     }
 
     private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {
