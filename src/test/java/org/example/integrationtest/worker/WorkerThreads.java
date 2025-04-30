@@ -10,34 +10,26 @@ public class WorkerThreads extends TestThreads {
     }
 
     @Override
-    public Thread[] initThreads(int threadCount, int boundMillisToSleep) {
-        Thread[] workerThreads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            workerThreads[i] = new Thread(() -> {
-                while(true) {
-                    workerManager.initRandomWorker();
-                    sleep(boundMillisToSleep);
-                }
-            });
-            workerThreads[i].setName("Worker initializer-" + i);
-            workerThreads[i].start();
-        }
-        return workerThreads;
+    protected Thread createInitThreads(int boundMillisToSleep) {
+        Thread thread = new Thread(() -> {
+            while(true) {
+                workerManager.initRandomWorker();
+                sleep(boundMillisToSleep);
+            }
+        });
+        setupThreadName(thread, "Worker initializer");
+        return thread;
     }
 
     @Override
-    public Thread[] stoppingThreads(int threadCount, int boundMillisToSleep) {
-        Thread[] threads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            threads[i] = new Thread(() -> {
-                while (true) {
-                    workerManager.stopRandomWorker();
-                    sleep(boundMillisToSleep);
-                }
-            });
-            threads[i].setName("Worker stopper-" + i);
-            threads[i].start();
-        }
-        return threads;
+    protected Thread createStoppingThread(int boundMillisToSleep) {
+        Thread thread = new Thread(() -> {
+            while(true) {
+                workerManager.stopRandomWorker();
+                sleep(boundMillisToSleep);
+            }
+        });
+        setupThreadName(thread, "Worker stopper");
+        return thread;
     }
 }

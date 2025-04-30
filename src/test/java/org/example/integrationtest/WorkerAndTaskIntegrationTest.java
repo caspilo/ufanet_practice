@@ -28,6 +28,11 @@ public class WorkerAndTaskIntegrationTest {
         initThreads(taskThreads, TASK_THREAD_COUNT);
     }
 
+    private static void initThreads(TestThreads testThreads, int workerThreadCount) {
+        testThreads.initThreads(workerThreadCount, BOUND_MILLIS_TO_SLEEP);
+        testThreads.stoppingThreads(workerThreadCount, BOUND_MILLIS_TO_SLEEP);
+    }
+
     private static void initDataSource() {
         DataSource dataSource = createDataSource();
         RepositoryHolder.init(dataSource);
@@ -79,10 +84,5 @@ public class WorkerAndTaskIntegrationTest {
         params.put("ID", "1");
         params.put("message", "Hello World");
         return params;
-    }
-
-    private static void initThreads(TestThreads workerThreads, int workerThreadCount) {
-        workerThreads.initThreads(workerThreadCount, BOUND_MILLIS_TO_SLEEP);
-        workerThreads.stoppingThreads(workerThreadCount, BOUND_MILLIS_TO_SLEEP);
     }
 }

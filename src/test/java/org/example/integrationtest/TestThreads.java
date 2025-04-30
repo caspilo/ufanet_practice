@@ -13,7 +13,31 @@ public abstract class TestThreads {
         }
     }
 
-    public abstract Thread[] initThreads(int threadCount, int boundMillisToSleep);
+    public Thread[] initThreads(int threadCount, int boundMillisToSleep) {
+        Thread[] threads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            threads[i] = createInitThreads(boundMillisToSleep);
+            threads[i].start();
+        }
+        return threads;
+    }
 
-    public abstract Thread[] stoppingThreads(int threadCount, int boundMillisToSleep);
+    public Thread[] stoppingThreads(int threadCount, int boundMillisToSleep) {
+        Thread[] threads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            threads[i] = createStoppingThread(boundMillisToSleep);
+            threads[i].start();
+        }
+        return threads;
+    }
+
+    protected void setupThreadName(Thread thread, String threadName) {
+        long threadId = thread.threadId();
+        String threadFullName = threadName + "-" + threadId;
+        thread.setName(threadFullName);
+    }
+
+    protected abstract Thread createInitThreads(int boundMillisToSleep);
+
+    protected abstract Thread createStoppingThread(int boundMillisToSleep);
 }
