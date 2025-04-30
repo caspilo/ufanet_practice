@@ -5,28 +5,25 @@ import org.example.core.monitoring.*;
 import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class TaskWorkerPool {
     private final MetricRegisterer metricRegisterer;
-    private final Map<String, UUID> categoriesAndIdWorkers = new HashMap<>();
+    private final Map<String, ArrayList<UUID>> workersIdAndCategory = new HashMap<>();
     private final Map<Map<String, UUID>, TaskWorker> taskWorkerMap = new HashMap<>();
 
     public TaskWorkerPool(MetricRegisterer metricRegisterer) {
         this.metricRegisterer = metricRegisterer;
     }
 
-    public <T extends Schedulable> void initWorkers(Map<Class<T>, Integer> categoriesAndThreads) {
+    public void initWorkers(Map<Class<? extends Schedulable>, Integer> categoriesAndThreads) {
         try {
             LogService.logger.info("Process initializing workers started");
-            for (Map.Entry<Class<T>, Integer> entry : categoriesAndThreads.entrySet()) {
+            for (Map.Entry<Class<? extends Schedulable>, Integer> entry : categoriesAndThreads.entrySet()) {
 
-                Class<T> taskClass = entry.getKey();
+                Class<? extends Schedulable> taskClass = entry.getKey();
                 int threadsCount = entry.getValue();
 
                 initWorker(taskClass, threadsCount);
@@ -45,7 +42,7 @@ public class TaskWorkerPool {
             for (int i = 0; i < threadsCount; i++) {
                 UUID workerId = UUID.randomUUID();
                 TaskWorker taskWorker = new TaskWorker(category, workerId);
-                categoriesAndIdWorkers.put(category, workerId);
+                addToMap(category, workerId);
                 taskWorkerMap.put(Collections.singletonMap(category, workerId), taskWorker);
                 threadPool.submit(taskWorker);
                 LogService.logger.info(String.format("Worker initializing with id: %s category '%s'",
@@ -61,23 +58,45 @@ public class TaskWorkerPool {
         }
     }
 
-    public void stopWorker(String category, UUID workerId) {
+
+    // TODO: воркеры продолжают работу в потоках!!! Они никак не прерываются
+    public void shutdownWorker(String category, UUID workerId) {
         try {
             TaskWorker worker = taskWorkerMap.get(Collections.singletonMap(category, workerId));
             if (worker != null) {
                 worker.doStop();
                 taskWorkerMap.remove(Collections.singletonMap(category, workerId), worker);
-                categoriesAndIdWorkers.remove(category, workerId);
+                workersIdAndCategory.get(category).remove(workerId);
+                if (workersIdAndCategory.get(category).isEmpty()) {
+                    workersIdAndCategory.remove(category);
+                }
+
+
+
+                LogService.logger.info(String.format("Worker with id %s and category '%s' has been shutdown", workerId, category));
             } else {
-                LogService.logger.warning(String.format("Worker with id: %s and category: '%s' not found", workerId, category));
+                LogService.logger.warning(String.format("Worker with id %s and category '%s' not found", workerId, category));
             }
             WorkerMetrics.workerDeleted(category);
         } catch (Exception e) {
-            LogService.logger.severe(String.format("Failed to stop worker with id: %s and category: '%s'. ", workerId, category) + e.getMessage());
+            LogService.logger.severe(String.format("Failed to stop worker with id %s and category '%s'. ", workerId, category) + e.getMessage());
         }
     }
 
-    public Map<String, UUID> getCategoriesAndIdCurrentWorkers() {
-        return categoriesAndIdWorkers;
+    public void shutdownAllWorkers() {
+        for (Map.Entry<String, ArrayList<UUID>> entry : workersIdAndCategory.entrySet()) {
+            for (UUID workerId : entry.getValue()) {
+                shutdownWorker(entry.getKey(), workerId);
+            }
+        }
+    }
+
+    public Map<String, ArrayList<UUID>> getWorkersIdAndCategory() {
+        return workersIdAndCategory;
+    }
+
+    private void addToMap(String category, UUID id) {
+        workersIdAndCategory.putIfAbsent(category, new ArrayList<>());
+        workersIdAndCategory.get(category).add(id);
     }
 }
