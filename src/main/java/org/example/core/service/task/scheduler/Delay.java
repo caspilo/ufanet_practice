@@ -46,6 +46,18 @@ public class Delay {
         return delayLimit;
     }
 
+    @Override
+    public String toString() {
+        return "Delay{" +
+                "withRetry=" + withRetry +
+                ", fixedRetryPolicy=" + fixedRetryPolicy +
+                ", delayBase=" + delayBase +
+                ", fixDelayValue=" + fixDelayValue +
+                ", maxRetryCount=" + maxRetryCount +
+                ", delayLimit=" + delayLimit +
+                '}';
+    }
+
     public static class DelayBuilder {
         private boolean withRetry = false;
         private boolean fixedRetryPolicy = false;

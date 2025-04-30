@@ -5,17 +5,13 @@ import org.example.core.monitoring.*;
 import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class TaskWorkerPool {
     private final MetricRegisterer metricRegisterer;
-    private final Map<String, UUID> categoriesAndIdWorkers = new HashMap<>();
-    private final Map<Map<String, UUID>, TaskWorker> taskWorkerMap = new HashMap<>();
+    private final Map<String, List<UUID>> categoriesAndIdWorkers = new ConcurrentHashMap<>();
+    private final Map<Map<String, UUID>, TaskWorker> taskWorkerMap = new ConcurrentHashMap<>();
 
     public TaskWorkerPool(MetricRegisterer metricRegisterer) {
         this.metricRegisterer = metricRegisterer;
@@ -23,18 +19,20 @@ public class TaskWorkerPool {
 
     public <T extends Schedulable> void initWorkers(Map<Class<T>, Integer> categoriesAndThreads) {
         try {
-            LogService.logger.info("Process initializing workers started");
-            for (Map.Entry<Class<T>, Integer> entry : categoriesAndThreads.entrySet()) {
-
-                Class<T> taskClass = entry.getKey();
-                int threadsCount = entry.getValue();
-
-                initWorker(taskClass, threadsCount);
-            }
-            LogService.logger.info("Process initializing workers completed");
+            tryInitWorkers(categoriesAndThreads);
         } catch (Exception e) {
             LogService.logger.severe("Process initializing workers failed. " + e.getMessage());
         }
+    }
+
+    private <T extends Schedulable> void tryInitWorkers(Map<Class<T>, Integer> categoriesAndThreads) {
+        LogService.logger.info("Process initializing workers started");
+        for (var categoryAndThreads : categoriesAndThreads.entrySet()) {
+            Class<T> taskClass = categoryAndThreads.getKey();
+            int threadsCount = categoryAndThreads.getValue();
+            initWorker(taskClass, threadsCount);
+        }
+        LogService.logger.info("Process initializing workers completed");
     }
 
     public <T extends Schedulable> void initWorker(Class<T> taskClass, int threadsCount) {
@@ -45,7 +43,7 @@ public class TaskWorkerPool {
             for (int i = 0; i < threadsCount; i++) {
                 UUID workerId = UUID.randomUUID();
                 TaskWorker taskWorker = new TaskWorker(category, workerId);
-                categoriesAndIdWorkers.put(category, workerId);
+                putInCategoriesAndIdWorkers(category, workerId);
                 taskWorkerMap.put(Collections.singletonMap(category, workerId), taskWorker);
                 threadPool.submit(taskWorker);
                 LogService.logger.info(String.format("Worker initializing with id: %s category '%s'",
@@ -61,13 +59,23 @@ public class TaskWorkerPool {
         }
     }
 
+    private void putInCategoriesAndIdWorkers(String category, UUID workerId) {
+        if (categoriesAndIdWorkers.containsKey(category)) {
+            categoriesAndIdWorkers.get(category).add(workerId);
+        } else {
+            List<UUID> workerIds = new CopyOnWriteArrayList<>();
+            workerIds.add(workerId);
+            categoriesAndIdWorkers.put(category, workerIds);
+        }
+    }
+
     public void stopWorker(String category, UUID workerId) {
         try {
             TaskWorker worker = taskWorkerMap.get(Collections.singletonMap(category, workerId));
             if (worker != null) {
                 worker.doStop();
                 taskWorkerMap.remove(Collections.singletonMap(category, workerId), worker);
-                categoriesAndIdWorkers.remove(category, workerId);
+                categoriesAndIdWorkers.get(category).remove(workerId);
             } else {
                 LogService.logger.warning(String.format("Worker with id: %s and category: '%s' not found", workerId, category));
             }
@@ -77,7 +85,7 @@ public class TaskWorkerPool {
         }
     }
 
-    public Map<String, UUID> getCategoriesAndIdCurrentWorkers() {
-        return categoriesAndIdWorkers;
+    public Optional<List<UUID>> getWorkersIdByCategory(String category) {
+        return Optional.ofNullable(categoriesAndIdWorkers.get(category));
     }
 }

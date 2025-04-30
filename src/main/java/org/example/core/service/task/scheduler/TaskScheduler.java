@@ -12,7 +12,7 @@ import org.example.core.validator.DelayValidator;
 import org.example.holder.ServiceHolder;
 
 import java.sql.Timestamp;
-import java.util.Map;
+import java.util.*;
 
 public class TaskScheduler implements TaskSchedulerService {
 
@@ -29,7 +29,7 @@ public class TaskScheduler implements TaskSchedulerService {
     }
 
     @Override
-    public <T extends Schedulable> Long scheduleTask(Class<T> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
+    public <T extends Schedulable> Optional<Long> scheduleTask(Class<T> scheduleClass, Map<String, String> params, String executionTime, Delay delay) {
         try {
             LogService.logger.info("Process scheduleTask for '" + scheduleClass.getName() + "' started");
             if (!DelayValidator.validateParams(delay)) {
@@ -39,10 +39,10 @@ public class TaskScheduler implements TaskSchedulerService {
             createAndSaveDelayParams(delay, savedTask);
 
             LogService.logger.info("Process scheduleTask has been completed. Returns id for task: " + savedTask.getId());
-            return savedTask.getId();
+            return Optional.of(savedTask.getId());
         } catch (Exception e) {
             LogService.logger.severe("Process schedule task failed. " + e.getMessage());
-            return null;
+            return Optional.empty();
         } finally {
             metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.SCHEDULED_TASK_COUNT);
             metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.FAILED_TASK_COUNT);
