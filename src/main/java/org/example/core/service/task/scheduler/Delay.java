@@ -1,37 +1,31 @@
 package org.example.core.service.task.scheduler;
 
+import org.example.retry_policy.FixedRetryPolicy;
+import org.example.retry_policy.RetryPolicy;
+
+import java.util.Map;
+
 public class Delay {
     private final boolean withRetry;
-    private final boolean fixedRetryPolicy;
-    private final Long delayBase;
     private final Long fixDelayValue;
     private final int maxRetryCount;
-    private final Long delayLimit;
+    private final Class<? extends RetryPolicy> retryPolicyClass;
+    private final Map<String, String> retryParams;
 
     private Delay(boolean withRetry,
-                  boolean fixedRetryPolicy,
-                  Long delayBase,
                   Long fixDelayValue,
                   int maxRetryCount,
-                  Long delayLimit) {
+                  Class<? extends RetryPolicy> retryPolicyClass,
+                  Map<String, String> retryParams) {
         this.withRetry = withRetry;
-        this.fixedRetryPolicy = fixedRetryPolicy;
-        this.delayBase = delayBase;
         this.fixDelayValue = fixDelayValue;
         this.maxRetryCount = maxRetryCount;
-        this.delayLimit = delayLimit;
+        this.retryPolicyClass = retryPolicyClass;
+        this.retryParams = retryParams;
     }
 
     public boolean isWithRetry() {
         return withRetry;
-    }
-
-    public boolean isFixedRetryPolicy() {
-        return fixedRetryPolicy;
-    }
-
-    public Long getDelayBase() {
-        return delayBase;
     }
 
     public Long getFixDelayValue() {
@@ -42,32 +36,26 @@ public class Delay {
         return maxRetryCount;
     }
 
-    public Long getDelayLimit() {
-        return delayLimit;
+    public Class<? extends RetryPolicy> getRetryPolicyClass() {
+        return retryPolicyClass;
+    }
+
+    public Map<String, String> getRetryParams() {
+        return retryParams;
     }
 
     public static class DelayBuilder {
         private boolean withRetry = false;
-        private boolean fixedRetryPolicy = false;
-        private Long delayBase = 0L;
-        private Long fixDelayValue = 0L;
+        private Long fixDelayValue = 10000L;
         private int maxRetryCount = 0;
-        private Long delayLimit = 0L;
+        private Class<? extends RetryPolicy> retryPolicyClass = FixedRetryPolicy.class;
+        private Map<String, String> retryParams = Map.of("fixDelayValue", fixDelayValue.toString());
 
         public DelayBuilder setWithRetry(boolean withRetry) {
             this.withRetry = withRetry;
             return this;
         }
 
-        public DelayBuilder setFixedRetryPolicy(boolean fixedRetryPolicy) {
-            this.fixedRetryPolicy = fixedRetryPolicy;
-            return this;
-        }
-
-        public DelayBuilder setDelayBase(Long delayBase) {
-            this.delayBase = delayBase;
-            return this;
-        }
 
         public DelayBuilder setFixDelayValue(Long fixDelayValue) {
             this.fixDelayValue = fixDelayValue;
@@ -79,16 +67,20 @@ public class Delay {
             return this;
         }
 
-        public DelayBuilder setDelayLimit(Long delayLimit) {
-            this.delayLimit = delayLimit;
+        public DelayBuilder setRetryPolicyClass(Class<? extends RetryPolicy> retryPolicyClass) {
+            this.retryPolicyClass = retryPolicyClass;
+            return this;
+        }
+
+        public DelayBuilder setRetryParams(Map<String, String> retryParams) {
+            this.retryParams = retryParams;
             return this;
         }
 
         public Delay build() {
             return new Delay(
-                    withRetry, fixedRetryPolicy,
-                    delayBase, fixDelayValue,
-                    maxRetryCount, delayLimit);
+                    withRetry,
+                    fixDelayValue, maxRetryCount, retryPolicyClass, retryParams);
         }
     }
 }
