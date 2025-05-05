@@ -14,9 +14,9 @@ public interface TaskRepository {
 
     void increaseRetryCountForTask(Long id, String category);
 
-    List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
+    List<ScheduledTask> getReadyTasksByCategory(String category);
 
-    ScheduledTask getAndLockNextTaskByCategory(String category);
+    ScheduledTask getNextReadyTaskByCategory(String category);
 
     void rescheduleTask(Long id, long delay, String category);
 

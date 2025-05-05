@@ -15,9 +15,9 @@ public interface TaskService {
 
     void rescheduleTask(Long id, long delay, String category);
 
-    List<ScheduledTask> getAndLockReadyTasksByCategory(String category);
+    List<ScheduledTask> getReadyTasksByCategory(String category);
 
-    ScheduledTask getAndLockNextTaskByCategory(String category);
+    ScheduledTask getNextReadyTaskByCategory(String category);
 
     Long save(ScheduledTask task, String category);
 

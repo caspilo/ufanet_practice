@@ -88,7 +88,8 @@ public class JdbcTaskRepository implements TaskRepository {
                 "    params JSON NOT NULL,\n" +
                 "    status ENUM('PENDING','RETRYING','READY','PROCESSING','FAILED','COMPLETED','CANCELED','NONE') NOT NULL DEFAULT 'NONE',\n" +
                 "    execution_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" +
-                "    retry_count INT DEFAULT 0\n);";
+                "    retry_count INT DEFAULT 0,\n" +
+                "    revision INT NOT NULL DEFAULT 1);";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -193,29 +194,14 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    private ScheduledTask createTaskFromResult(ResultSet result) {
-
-        ScheduledTask task = new ScheduledTask();
-
-        try {
-            task.setId(result.getLong(1));
-            task.setCategory(result.getString(2));
-            task.setCanonicalName(result.getString(3));
-            task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {
-            }));
-            task.setStatus(TaskStatus.valueOf(result.getString(5)));
-            task.setExecutionTime(result.getTimestamp(6));
-            task.setRetryCount(result.getInt(7));
-
-            return task;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public ScheduledTask getNextReadyTaskByCategory(String category) {
+        return getNextTaskByCategoryWithOptimisticLocking(category);
     }
 
 
     @Override
-    public List<ScheduledTask> getAndLockReadyTasksByCategory(String category) {
+    public List<ScheduledTask> getReadyTasksByCategory(String category) {
 
         List<ScheduledTask> tasks = new ArrayList<>();
         ScheduledTask currentTask;
@@ -243,8 +229,38 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
 
-    @Override
-    public ScheduledTask getAndLockNextTaskByCategory(String category) {
+    private ScheduledTask createTaskFromResult(ResultSet result) {
+
+        ScheduledTask task = new ScheduledTask();
+
+        try {
+            task.setId(result.getLong(1));
+            task.setCategory(result.getString(2));
+            task.setCanonicalName(result.getString(3));
+            task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {
+            }));
+            task.setStatus(TaskStatus.valueOf(result.getString(5)));
+            task.setExecutionTime(result.getTimestamp(6));
+            task.setRetryCount(result.getInt(7));
+
+            return task;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<Object> getTaskAndRevisionFromResult(ResultSet result) {
+
+        try {
+            ScheduledTask task = createTaskFromResult(result);
+            int revision = result.getInt(8);
+            return List.of(task, revision);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ScheduledTask getNextTaskByCategoryWithPessimisticLocking(String category) {
 
         String sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED";
 
@@ -269,6 +285,59 @@ public class JdbcTaskRepository implements TaskRepository {
         } catch (SQLException e) {
             throw new RuntimeException(String.format("Task locking error. %s", e));
         }
+    }
+
+    private ScheduledTask getNextTaskByCategoryWithOptimisticLocking(String category) {
+
+        String sql = "";
+
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+
+            sql = "SELECT * FROM " + tableName + category + " WHERE status = 'READY' ORDER BY id LIMIT 1";
+            PreparedStatement stmt = connection.prepareStatement(sql);
+
+            List<Object> taskAndRevision;
+            ScheduledTask task;
+            int revision;
+
+            try (ResultSet result = stmt.executeQuery()) {
+                if (result.next()) {
+                    taskAndRevision = getTaskAndRevisionFromResult(result);
+                    task = (ScheduledTask) taskAndRevision.get(0);
+                    revision = (int) taskAndRevision.get(1);
+
+                    if (task != null) {
+                        changeTaskStatus(task.getId(), TaskStatus.PROCESSING, category, connection);
+                    } else {
+                        connection.rollback();
+                        throw new RuntimeException("Task updating error: task not found");
+                    }
+                } else {
+                    connection.rollback();
+                    throw new RuntimeException("No ready tasks in category '" + category + "'");
+                }
+            }
+
+            sql = "UPDATE " + tableName + category + " SET revision = revision + 1 WHERE id = ? AND revision = ?";
+
+            stmt = connection.prepareStatement(sql);
+            stmt.setLong(1, task.getId());
+            stmt.setInt(2, revision);
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                connection.rollback();
+            } else {
+                connection.commit();
+                return task;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Task locking error. %s", e));
+        }
+
+        return null;
     }
 
 
