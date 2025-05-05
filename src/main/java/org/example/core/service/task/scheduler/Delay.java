@@ -49,7 +49,7 @@ public class Delay {
         private Long fixDelayValue = 10000L;
         private int maxRetryCount = 0;
         private Class<? extends RetryPolicy> retryPolicyClass = FixedRetryPolicy.class;
-        private Map<String, String> retryParams = Map.of("fixDelayValue", fixDelayValue.toString());
+        private final Map<String, String> retryParams = Map.of("fixDelayValue", fixDelayValue.toString());
 
         public DelayBuilder setWithRetry(boolean withRetry) {
             this.withRetry = withRetry;
@@ -73,7 +73,7 @@ public class Delay {
         }
 
         public DelayBuilder setRetryParams(Map<String, String> retryParams) {
-            this.retryParams = retryParams;
+            this.retryParams.putAll(retryParams);
             return this;
         }
 

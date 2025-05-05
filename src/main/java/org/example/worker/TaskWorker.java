@@ -11,6 +11,9 @@ import org.example.core.service.task.TaskService;
 import org.example.holder.ExecutorHolder;
 import org.example.holder.ServiceHolder;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.*;
 
 public class TaskWorker implements Runnable {
@@ -20,7 +23,7 @@ public class TaskWorker implements Runnable {
     private final TaskService taskService;
     private final TaskExecutor taskExecutor;
 
-    private boolean doStop = false;
+    private AtomicBoolean doStop = new AtomicBoolean(false);
 
     public TaskWorker(String category, UUID workerId) {
         this.workerId = workerId;
@@ -29,12 +32,12 @@ public class TaskWorker implements Runnable {
         this.category = category;
     }
 
-    public synchronized void doStop() {
-        this.doStop = true;
+    public void doStop() {
+        this.doStop.set(true);
     }
 
-    private synchronized boolean keepRunning() {
-        return !this.doStop;
+    private boolean keepRunning() {
+        return !this.doStop.get();
     }
 
     private synchronized boolean executeTask(Schedulable task, Map<String, String> params) {
@@ -81,6 +84,4 @@ public class TaskWorker implements Runnable {
             LogService.logger.severe(e.getMessage());
         }
     }
-
-
 }

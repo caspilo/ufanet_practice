@@ -13,7 +13,7 @@ public class DelayParams {
     private int retryCount = 0;
     private Long fixDelayValue = null;
     private Class<? extends RetryPolicy> retryPolicyClass = FixedRetryPolicy.class;
-    private Map<String, String> retryParams = new HashMap<>();
+    private final Map<String, String> retryParams = new HashMap<>();
 
     public DelayParams(Long taskId) {
         this.taskId = taskId;
@@ -26,7 +26,7 @@ public class DelayParams {
         this.retryCount = retryCount;
         this.retryPolicyClass = retryPolicyClass;
         this.fixDelayValue = fixDelayValue;
-        this.retryParams = retryParams;
+        this.retryParams.putAll(retryParams);
         this.retryParams.putIfAbsent("fixDelayValue", fixDelayValue.toString());
     }
 
@@ -76,7 +76,7 @@ public class DelayParams {
     }
 
     public void setRetryParams(Map<String, String> retryParams) {
-        this.retryParams = retryParams;
+        this.retryParams.putAll(retryParams);
     }
 
     public void addRetryParams(String key, String value) {
