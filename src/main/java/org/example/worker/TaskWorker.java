@@ -3,10 +3,13 @@ package org.example.worker;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.metrics.*;
+import org.example.core.monitoring.metrics.TaskMetrics;
+import org.example.core.monitoring.metrics.WorkerMetrics;
 import org.example.core.schedulable.Schedulable;
-import org.example.core.service.task.*;
-import org.example.holder.*;
+import org.example.core.service.task.TaskExecutor;
+import org.example.core.service.task.TaskService;
+import org.example.holder.ExecutorHolder;
+import org.example.holder.ServiceHolder;
 
 import java.util.*;
 
@@ -58,7 +61,7 @@ public class TaskWorker implements Runnable {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             workerId, nextTask.getId(), category));
                     long executionStart = System.currentTimeMillis();
-                    Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
+                    Schedulable taskClass = nextTask.getSchedulableClass().getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.COMPLETED, category);
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been executed.",

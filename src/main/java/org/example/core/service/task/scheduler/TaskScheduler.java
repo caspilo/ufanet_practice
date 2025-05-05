@@ -57,7 +57,7 @@ public class TaskScheduler implements TaskSchedulerService {
         ScheduledTask task = new ScheduledTask();
         String category = scheduleClass.getSimpleName();
         task.setCategory(category);
-        task.setCanonicalName(scheduleClass.getName());
+        task.setSchedulableClass(scheduleClass);
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
         task.setId(taskService.save(task, category));
@@ -67,7 +67,7 @@ public class TaskScheduler implements TaskSchedulerService {
     private void createAndSaveDelayParams(Delay delay, ScheduledTask task) {
         DelayParams delayParams = new DelayParams(task.getId());
         delayParams.setWithRetry(delay.isWithRetry());
-        delayParams.setRetryCount(delay.getMaxRetryCount());
+        delayParams.setMaxRetryCount(delay.getMaxRetryCount());
         delayParams.setFixDelayValue(delay.getFixDelayValue());
         delayParams.setRetryPolicyClass(delay.getRetryPolicyClass());
         delayParams.setRetryParams(delay.getRetryParams());

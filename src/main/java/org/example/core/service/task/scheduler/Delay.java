@@ -1,7 +1,7 @@
 package org.example.core.service.task.scheduler;
 
-import org.example.retry_policy.FixedRetryPolicy;
-import org.example.retry_policy.RetryPolicy;
+import org.example.core.retry_policy.FixedRetryPolicy;
+import org.example.core.retry_policy.RetryPolicy;
 
 import java.util.Map;
 
@@ -48,11 +48,8 @@ public class Delay {
     public String toString() {
         return "Delay{" +
                 "withRetry=" + withRetry +
-                ", fixedRetryPolicy=" + fixedRetryPolicy +
-                ", delayBase=" + delayBase +
                 ", fixDelayValue=" + fixDelayValue +
                 ", maxRetryCount=" + maxRetryCount +
-                ", delayLimit=" + delayLimit +
                 '}';
     }
 

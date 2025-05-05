@@ -6,7 +6,7 @@ import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
 import org.example.core.monitoring.metrics.TaskMetrics;
 import org.example.core.service.delay.DelayService;
-import org.example.retry_policy.RetryPolicy;
+import org.example.core.retry_policy.RetryPolicy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class TaskExecutor {
             retryPolicyClass = delayParams.getRetryPolicyClass().newInstance();
             LogService.logger.info(String.format("Retry execute task with id: %s and category: '%s' using retry policy: '%s'",
                     id, category, retryPolicyClass.getClass().getName()));
-            long delayValue = retryPolicyClass.execute(delayParams.getRetryParams());
+            long delayValue = retryPolicyClass.calculate(delayParams.getRetryParams());
             if (delayValue >= 0) {
                 taskService.rescheduleTask(id, delayValue, category);
             } else {
@@ -49,7 +49,9 @@ public class TaskExecutor {
                 id, category));
         DelayParams delayParams = delayService.getDelayParams(id, category);
         if (delayParams.isWithRetry()) {
-            int maxRetryCount = delayParams.getRetryCount();
+//            ScheduledTask task = taskService.getTask(id, category);
+//            int retryCount = task.getRetryCount();
+            int maxRetryCount = delayParams.getMaxRetryCount();
             if (isTaskRescheduled.containsKey(id)) {
                 if (isTaskRescheduled.get(id).equals(true)) {
 
