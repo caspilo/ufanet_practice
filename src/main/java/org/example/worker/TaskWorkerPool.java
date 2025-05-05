@@ -69,7 +69,8 @@ public class TaskWorkerPool {
         }
     }
 
-    public void stopWorker(String category, UUID workerId) {
+    // TODO: воркеры продолжают работать после удаления из коллекций! нужно останавливать потоки
+    public void shutdownWorker(String category, UUID workerId) {
         try {
             TaskWorker worker = taskWorkerMap.get(Collections.singletonMap(category, workerId));
             if (worker != null) {
