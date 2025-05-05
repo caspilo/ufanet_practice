@@ -1,11 +1,10 @@
 package org.example.core.monitoring.metrics;
 
 public enum MetricType {
-    SCHEDULED_TASK_COUNT("ScheduledTaskCount"),
-    FAILED_TASK_COUNT("FailedTaskCount"),
-    WORKER_COUNT("WorkerCount"),
+    TAKEN_TASK_COUNT("TakenTaskCount"),
+    COMPLETED_TASK_COUNT("CompletedTaskCount"),
     TASK_AVERAGE_TIME_EXECUTION("TaskAverageTimeExecution"),
-    WORKER_AVERAGE_TIME_EXECUTION("WorkerAverageTimeExecution"),;
+    WORKER_AVERAGE_TIME_WAITING("WorkerAverageTimeWaiting"),;
 
     private final String name;
 

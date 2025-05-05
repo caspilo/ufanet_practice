@@ -2,8 +2,7 @@ package org.example.integrationtest;
 
 import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
-import org.example.core.monitoring.*;
-import org.example.core.monitoring.metrics.*;
+import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.*;
 import org.example.holder.RepositoryHolder;
 import org.example.integrationtest.task.*;
@@ -21,9 +20,9 @@ public class WorkerAndTaskIntegrationTest {
 
     public static void main(String[] args) {
         initDataSource();
-        MetricRegisterer metricRegisterer = createMetricRegisterer();
+        MetricRegisterer metricRegisterer = new MetricRegisterer();
         TestThreads workerThreads = createWorkerThreads(metricRegisterer);
-        TestThreads taskThreads = createTaskThreads(metricRegisterer);
+        TestThreads taskThreads = createTaskThreads();
         initThreads(workerThreads, WORKER_THREAD_COUNT);
         initThreads(taskThreads, TASK_THREAD_COUNT);
     }
@@ -46,29 +45,14 @@ public class WorkerAndTaskIntegrationTest {
         return new HikariDataSource(config);
     }
 
-    private static MetricRegisterer createMetricRegisterer() {
-        Map<MetricType, MetricHandler> metricHandlers = createAndSetupMetricHandlers();
-        return new MetricRegisterer(metricHandlers);
-    }
-
-    private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {
-        Map<MetricType, MetricHandler> metricHandlers = new HashMap<>();
-        metricHandlers.put(MetricType.FAILED_TASK_COUNT, TaskMetrics::getFailedTaskCountByCategory);
-        metricHandlers.put(MetricType.TASK_AVERAGE_TIME_EXECUTION, TaskMetrics::getTaskAverageExecutionTimeByCategory);
-        metricHandlers.put(MetricType.SCHEDULED_TASK_COUNT, TaskMetrics::getScheduledTaskCountByCategory);
-        metricHandlers.put(MetricType.WORKER_COUNT, WorkerMetrics::getWorkerCountByCategory);
-        metricHandlers.put(MetricType.WORKER_AVERAGE_TIME_EXECUTION, WorkerMetrics::getWorkerAverageWaitTimeByCategory);
-        return metricHandlers;
-    }
-
     private static TestThreads createWorkerThreads(MetricRegisterer metricRegisterer) {
         WorkerManager workerManager = new WorkerManager(MAX_WORKER_THREADS, MIN_WORKER_THREADS,
                 setupClasses(), metricRegisterer);
         return new WorkerThreads(workerManager);
     }
 
-    private static TestThreads createTaskThreads(MetricRegisterer metricRegisterer) {
-        TaskManager taskManager = new TaskManager(setupClasses(), setupParams(), metricRegisterer);
+    private static TestThreads createTaskThreads() {
+        TaskManager taskManager = new TaskManager(setupClasses(), setupParams());
         return new TaskThreads(taskManager);
     }
 

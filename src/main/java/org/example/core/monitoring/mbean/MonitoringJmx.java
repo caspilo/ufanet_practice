@@ -2,22 +2,21 @@ package org.example.core.monitoring.mbean;
 
 import org.example.core.monitoring.*;
 import org.example.core.monitoring.metrics.*;
+import org.example.worker.TaskWorker;
 
 import java.util.Map;
 
 public class MonitoringJmx implements MonitoringJmxMBean {
-    private final String category;
     private final MetricType metricType;
-    private final Map<MetricType, MetricHandler> metricHandler;
+    private final TaskWorker taskWorker;
 
-    public MonitoringJmx(String category, MetricType metricType, Map<MetricType, MetricHandler> metricHandler) {
-        this.category = category;
+    public MonitoringJmx(MetricType metricType, TaskWorker taskWorker) {
         this.metricType = metricType;
-        this.metricHandler = metricHandler;
+        this.taskWorker = taskWorker;
     }
 
     @Override
     public double getValue() {
-        return metricHandler.get(metricType).getMetric(category);
+        return taskWorker.getMetric(metricType);
     }
 }

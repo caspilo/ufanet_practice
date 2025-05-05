@@ -2,7 +2,6 @@ package org.example.worker;
 
 import org.example.core.logging.LogService;
 import org.example.core.monitoring.*;
-import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 
 import java.util.*;
@@ -43,6 +42,7 @@ public class TaskWorkerPool {
             for (int i = 0; i < threadsCount; i++) {
                 UUID workerId = UUID.randomUUID();
                 TaskWorker taskWorker = new TaskWorker(category, workerId);
+                taskWorker.initMetrics(metricRegisterer);
                 putInCategoriesAndIdWorkers(category, workerId);
                 taskWorkerMap.put(Collections.singletonMap(category, workerId), taskWorker);
                 threadPool.submit(taskWorker);
@@ -51,9 +51,6 @@ public class TaskWorkerPool {
             }
             LogService.logger.info(String.format("Worker pool initializing with for category: '%s', with %s thread(s) %s",
                     category, threadsCount, threadPool));
-            metricRegisterer.registerMetric(category, MetricType.WORKER_COUNT);
-            metricRegisterer.registerMetric(category, MetricType.WORKER_AVERAGE_TIME_EXECUTION);
-            WorkerMetrics.workerCreated(category);
         } catch (Exception e) {
             LogService.logger.severe(String.format("Worker with category: '%s' initializing failed. ", taskClass.getSimpleName()) + e.getMessage());
         }
@@ -79,7 +76,6 @@ public class TaskWorkerPool {
             } else {
                 LogService.logger.warning(String.format("Worker with id: %s and category: '%s' not found", workerId, category));
             }
-            WorkerMetrics.workerDeleted(category);
         } catch (Exception e) {
             LogService.logger.severe(String.format("Failed to stop worker with id: %s and category: '%s'. ", workerId, category) + e.getMessage());
         }

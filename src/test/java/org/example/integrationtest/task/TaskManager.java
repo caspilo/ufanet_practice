@@ -18,9 +18,8 @@ public class TaskManager {
     private final Map<String, List<Long>> tasksId = new ConcurrentHashMap<>();
 
     public TaskManager(Map<Integer, Class<? extends Schedulable>> classes,
-                       Map<String, String> params,
-                       MetricRegisterer metricRegisterer) {
-        this.taskScheduler = new TaskScheduler(metricRegisterer);
+                       Map<String, String> params) {
+        this.taskScheduler = new TaskScheduler();
         this.classes = classes;
         this.params = params;
     }

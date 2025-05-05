@@ -20,10 +20,8 @@ public class TaskScheduler implements TaskSchedulerService {
 
     private final DelayService delayService;
 
-    private final MetricRegisterer metricRegisterer;
 
-    public TaskScheduler(MetricRegisterer metricRegisterer) {
-        this.metricRegisterer = metricRegisterer;
+    public TaskScheduler() {
         this.taskService = ServiceHolder.getTaskService();
         this.delayService = ServiceHolder.getDelayService();
     }
@@ -43,11 +41,6 @@ public class TaskScheduler implements TaskSchedulerService {
         } catch (Exception e) {
             LogService.logger.severe("Process schedule task failed. " + e.getMessage());
             return Optional.empty();
-        } finally {
-            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.SCHEDULED_TASK_COUNT);
-            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.FAILED_TASK_COUNT);
-            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.TASK_AVERAGE_TIME_EXECUTION);
-            TaskMetrics.taskScheduled(scheduleClass.getSimpleName());
         }
     }
 
