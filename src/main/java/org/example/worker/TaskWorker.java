@@ -42,15 +42,15 @@ public class TaskWorker implements Runnable {
     public void run() {
         try {
             while (keepRunning()) {
-                long workerWaitStartTime = System.currentTimeMillis();
                 Thread.sleep(3000);
+                long workerWaitStartTime = System.currentTimeMillis();
                 LogService.logger.info(String.format("Worker with id: %s and category '%s' searching ready tasks...",
                         workerId, category));
                 ScheduledTask nextTask = null;
                 try {
-                    nextTask = taskService.getAndLockNextTaskByCategory(category);
+                    nextTask = taskService.getNextReadyTaskByCategory(category);
                 } catch (Exception e) {
-                    LogService.logger.severe("Table for category: '" + category + "' not found. " + e.getMessage());
+                    LogService.logger.severe(e.getMessage());
                 }
                 if (nextTask != null) {
                     long workerWaitEndTime = System.currentTimeMillis();
@@ -58,7 +58,6 @@ public class TaskWorker implements Runnable {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             workerId, nextTask.getId(), category));
                     long executionStart = System.currentTimeMillis();
-                    Thread.sleep(2000); // имитация процесса выполнения
                     Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.COMPLETED, category);
