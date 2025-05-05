@@ -1,6 +1,8 @@
 package org.example.core.entity;
 
 import org.example.core.entity.enums.TaskStatus;
+import org.example.core.schedulable.DoSomething;
+import org.example.core.schedulable.Schedulable;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -10,7 +12,7 @@ public class ScheduledTask {
 
     private Long id;
     private String category;
-    private String canonicalName;
+    private Class<? extends Schedulable> schedulableClass;
     private Map<String, String> params;
     private TaskStatus status = TaskStatus.NONE;
     private Timestamp executionTime;
@@ -23,7 +25,7 @@ public class ScheduledTask {
 
     public ScheduledTask() {
         this.category = "DoSomething";
-        this.canonicalName = "org.example.test.DoSomething";
+        this.schedulableClass = DoSomething.class;
         this.params = Map.of("ID", "123",
                 "message", "Test message");
         this.executionTime = new Timestamp(System.currentTimeMillis());
@@ -80,12 +82,12 @@ public class ScheduledTask {
         this.retryCount = retryCount;
     }
 
-    public String getCanonicalName() {
-        return canonicalName;
+    public Class<? extends Schedulable> getSchedulableClass() {
+        return schedulableClass;
     }
 
-    public void setCanonicalName(String canonicalName) {
-        this.canonicalName = canonicalName;
+    public void setSchedulableClass(Class<? extends Schedulable> schedulableClass) {
+        this.schedulableClass = schedulableClass;
     }
 
     public Map<String, String> getParams() {
@@ -94,5 +96,13 @@ public class ScheduledTask {
 
     public void setParams(Map<String, String> params) {
         this.params = params;
+    }
+
+    public void setSchedulableClass(String schedulableClassName) {
+        try {
+            setSchedulableClass((Class<? extends Schedulable>) Class.forName(schedulableClassName));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

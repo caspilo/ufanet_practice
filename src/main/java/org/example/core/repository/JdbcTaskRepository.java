@@ -52,7 +52,7 @@ public class JdbcTaskRepository implements TaskRepository {
             PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             stmt.setString(1, task.getCategory());
-            stmt.setString(2, task.getCanonicalName());
+            stmt.setString(2, task.getSchedulableClass().getName());
             stmt.setString(3, objectMapper.writeValueAsString(task.getParams()));
             stmt.setString(4, task.getStatus().name());
             stmt.setTimestamp(5, task.getExecutionTime());
@@ -200,7 +200,7 @@ public class JdbcTaskRepository implements TaskRepository {
         try {
             task.setId(result.getLong(1));
             task.setCategory(result.getString(2));
-            task.setCanonicalName(result.getString(3));
+            task.setSchedulableClass(result.getString(3));
             task.setParams(objectMapper.readValue(result.getString(4), new TypeReference<>() {
             }));
             task.setStatus(TaskStatus.valueOf(result.getString(5)));

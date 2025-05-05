@@ -2,7 +2,6 @@ package org.example.core.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.entity.DelayParams;
-import org.example.retry_policy.RetryPolicy;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -39,9 +38,9 @@ public class JdbcDelayRepository implements DelayRepository {
                 if (result.next()) {
                     DelayParams delayParams = new DelayParams(taskId);
                     delayParams.setWithRetry(result.getBoolean("with_retry"));
-                    delayParams.setRetryCount(result.getInt("retry_count"));
+                    delayParams.setMaxRetryCount(result.getInt("max_retry_count"));
                     delayParams.setFixDelayValue(result.getLong("fix_delay_value"));
-                    delayParams.setRetryPolicyClass((Class<? extends RetryPolicy>) Class.forName(result.getString("retry_policy_canonical_name")));
+                    delayParams.setRetryPolicyClass(result.getString("retry_policy_canonical_name"));
                     delayParams.setRetryParams(objectMapper.readValue(result.getString("retry_params"), Map.class));
                     return delayParams;
                 }
@@ -59,7 +58,7 @@ public class JdbcDelayRepository implements DelayRepository {
 
         createTableIfNotExists(category);
 
-        String sql = "INSERT INTO " + tableName + category + " (task_id, with_retry, retry_count, fix_delay_value, " +
+        String sql = "INSERT INTO " + tableName + category + " (task_id, with_retry, max_retry_count, fix_delay_value, " +
                 "retry_policy_canonical_name, retry_params) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = dataSource.getConnection()) {
@@ -67,7 +66,7 @@ public class JdbcDelayRepository implements DelayRepository {
 
             stmt.setLong(1, delayParams.getTaskId());
             stmt.setBoolean(2, delayParams.isWithRetry());
-            stmt.setInt(3, delayParams.getRetryCount());
+            stmt.setInt(3, delayParams.getMaxRetryCount());
             stmt.setLong(4, delayParams.getFixDelayValue());
             stmt.setString(5, delayParams.getRetryPolicyClass().getName());
             stmt.setString(6, objectMapper.writeValueAsString(delayParams.getRetryParams()));
@@ -87,7 +86,7 @@ public class JdbcDelayRepository implements DelayRepository {
         String sql = "CREATE TABLE IF NOT EXISTS " + tableName + category + " (\n" +
                 "task_id BIGINT PRIMARY KEY,\n" +
                 "    with_retry BOOL NOT NULL,\n" +
-                "    retry_count INT,\n" +
+                "    max_retry_count INT,\n" +
                 "    fix_delay_value BIGINT,\n" +
                 "    retry_policy_canonical_name VARCHAR(255) NOT NULL,\n" +
                 "    retry_params JSON NOT NULL,\n" +

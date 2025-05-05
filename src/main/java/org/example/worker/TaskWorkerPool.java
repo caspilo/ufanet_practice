@@ -49,7 +49,7 @@ public class TaskWorkerPool {
                 LogService.logger.info(String.format("Worker initializing with id: %s category '%s'",
                         workerId, category));
             }
-            LogService.logger.info(String.format("Worker pool initializing with for category: '%s', with %s thread(s) %s",
+            LogService.logger.info(String.format("Worker pool initializing for category: '%s', with %s thread(s) %s",
                     category, threadsCount, threadPool));
             metricRegisterer.registerMetric(category, MetricType.WORKER_COUNT);
             metricRegisterer.registerMetric(category, MetricType.WORKER_AVERAGE_TIME_EXECUTION);

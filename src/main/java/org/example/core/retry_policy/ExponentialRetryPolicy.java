@@ -1,10 +1,10 @@
-package org.example.retry_policy;
+package org.example.core.retry_policy;
 
 import java.util.Map;
 
 public class ExponentialRetryPolicy implements RetryPolicy {
     @Override
-    public long execute(Map<String, String> retryParams) {
+    public long calculate(Map<String, String> retryParams) {
         long delayBase = Long.parseLong(retryParams.get("delayBase"));
         int attemptCount = Integer.parseInt(retryParams.get("attemptCount"));
         long delayLimit = Long.parseLong(retryParams.get("delayLimit"));
