@@ -1,6 +1,5 @@
 package org.example.integrationtest.task;
 
-import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.scheduler.*;
 

@@ -1,10 +1,7 @@
 package org.example.core.monitoring.mbean;
 
-import org.example.core.monitoring.*;
-import org.example.core.monitoring.metrics.*;
+import org.example.core.monitoring.metrics.MetricType;
 import org.example.worker.TaskWorker;
-
-import java.util.Map;
 
 public class MonitoringJmx implements MonitoringJmxMBean {
     private final MetricType metricType;

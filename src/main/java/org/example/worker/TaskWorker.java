@@ -10,18 +10,17 @@ import org.example.core.service.task.*;
 import org.example.holder.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TaskWorker implements Runnable {
-    private final String category;
-
     private final UUID workerId;
+    private final String category;
     private final TaskService taskService;
     private final TaskExecutor taskExecutor;
     private final Random random = new Random();
 
+    private AtomicBoolean doStop = new AtomicBoolean(false);
     private MetricService metricService;
-
-    private boolean doStop = false;
 
     public TaskWorker(String category, UUID workerId) {
         this.workerId = workerId;
@@ -43,12 +42,12 @@ public class TaskWorker implements Runnable {
         return metricService.getMetric(metricType);
     }
 
-    public synchronized void doStop() {
-        this.doStop = true;
+    public void doStop() {
+        this.doStop.set(true);
     }
 
-    private synchronized boolean keepRunning() {
-        return !this.doStop;
+    private boolean keepRunning() {
+        return !this.doStop.get();
     }
 
     private synchronized boolean executeTask(Schedulable task, Map<String, String> params) {
