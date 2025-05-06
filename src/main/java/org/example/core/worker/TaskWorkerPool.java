@@ -1,4 +1,4 @@
-package org.example.worker;
+package org.example.core.worker;
 
 import org.example.core.logging.LogService;
 import org.example.core.monitoring.*;

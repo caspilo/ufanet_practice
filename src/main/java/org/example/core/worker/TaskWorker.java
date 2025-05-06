@@ -1,12 +1,13 @@
-package org.example.worker;
+package org.example.core.worker;
 
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
+import org.example.core.holder.ExecutorHolder;
+import org.example.core.holder.ServiceHolder;
 import org.example.core.logging.LogService;
 import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.*;
-import org.example.holder.*;
 
 import java.util.*;
 
@@ -78,6 +79,4 @@ public class TaskWorker implements Runnable {
             LogService.logger.severe(e.getMessage());
         }
     }
-
-
 }

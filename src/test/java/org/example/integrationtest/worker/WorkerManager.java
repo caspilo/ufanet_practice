@@ -2,7 +2,7 @@ package org.example.integrationtest.worker;
 
 import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.Schedulable;
-import org.example.worker.TaskWorkerPool;
+import org.example.core.worker.TaskWorkerPool;
 
 import java.time.LocalDateTime;
 import java.util.*;

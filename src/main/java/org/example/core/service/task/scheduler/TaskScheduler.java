@@ -9,7 +9,7 @@ import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
 import org.example.core.validator.DelayValidator;
-import org.example.holder.ServiceHolder;
+import org.example.core.holder.ServiceHolder;
 
 import java.sql.Timestamp;
 import java.util.*;

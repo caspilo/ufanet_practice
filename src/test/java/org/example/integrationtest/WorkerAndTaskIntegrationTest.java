@@ -5,7 +5,7 @@ import org.example.config.DataSourceConfig;
 import org.example.core.monitoring.*;
 import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.*;
-import org.example.holder.RepositoryHolder;
+import org.example.core.holder.RepositoryHolder;
 import org.example.integrationtest.task.*;
 import org.example.integrationtest.worker.*;
 

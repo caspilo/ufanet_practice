@@ -1,4 +1,4 @@
-package org.example.holder;
+package org.example.core.holder;
 
 import org.example.core.service.task.TaskExecutor;
 
