@@ -62,13 +62,11 @@ public class TaskExecutor {
         }
     }
 
-    public void executeRetryPolicyForTask(Long id, String category) {
+    public void executeRetryPolicyForTask(Long id, String category, int retryCount) {
         LogService.logger.info(String.format("Trying to retry execute task with id: %s and category: '%s'",
                 id, category));
         DelayParams delayParams = delayService.getDelayParams(id, category);
         if (delayParams.isWithRetry()) {
-            ScheduledTask task = taskService.getTask(id, category);
-            int retryCount = task.getRetryCount();
             int maxRetryCount = delayParams.getRetryCount();
             if (isTaskRescheduled.containsKey(id)) {
                 if (isTaskRescheduled.get(id).equals(true)) {
