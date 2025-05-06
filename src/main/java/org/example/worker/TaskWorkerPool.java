@@ -85,6 +85,14 @@ public class TaskWorkerPool {
         }
     }
 
+    public void shutdownAllWorkers() {
+        for (Map.Entry<String, List<UUID>> entry : categoriesAndIdWorkers.entrySet()) {
+            for (UUID workerId : entry.getValue()) {
+                shutdownWorker(entry.getKey(), workerId);
+            }
+        }
+    }
+
     public Optional<List<UUID>> getWorkersIdByCategory(String category) {
         return Optional.ofNullable(categoriesAndIdWorkers.get(category));
     }

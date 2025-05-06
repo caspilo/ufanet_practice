@@ -69,7 +69,7 @@ public class TaskWorker implements Runnable {
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been failed.",
                                 nextTask.getId(), category));
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.RETRYING, category);
-                        taskExecutor.executeRetryPolicyForTask(nextTask.getId(), category);
+                        taskExecutor.executeRetryPolicyForTask(nextTask.getId(), nextTask.getCategory(), nextTask.getRetryCount());
                     }
                 }
             }

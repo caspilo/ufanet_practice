@@ -2,9 +2,6 @@ package org.example.core.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.example.config.DataSourceConfig;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 
@@ -19,18 +16,9 @@ public class JdbcTaskRepository implements TaskRepository {
     private final String tableName = "tasks_";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JdbcTaskRepository() {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(DataSourceConfig.jdbcUrl);
-        config.setUsername(DataSourceConfig.username);
-        config.setPassword(DataSourceConfig.password);
-        dataSource = new HikariDataSource(config);
-    }
-
     public JdbcTaskRepository(final DataSource dataSource) {
         this.dataSource = dataSource;
     }
-
 
     @Override
     public boolean existsById(Long id, String category) {
@@ -289,7 +277,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
     private ScheduledTask getNextTaskByCategoryWithOptimisticLocking(String category) {
 
-        String sql = "";
+        String sql;
 
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(false);
