@@ -8,7 +8,9 @@ import org.example.core.schedulable.Schedulable;
 import org.example.core.service.task.*;
 import org.example.holder.*;
 
-import java.util.*;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TaskWorker implements Runnable {
     private final String category;
@@ -17,7 +19,7 @@ public class TaskWorker implements Runnable {
     private final TaskService taskService;
     private final TaskExecutor taskExecutor;
 
-    private boolean doStop = false;
+    private final AtomicBoolean doStop = new AtomicBoolean(false);
 
     public TaskWorker(String category, UUID workerId) {
         this.workerId = workerId;
@@ -26,12 +28,12 @@ public class TaskWorker implements Runnable {
         this.category = category;
     }
 
-    public synchronized void doStop() {
-        this.doStop = true;
+    public void doStop() {
+        this.doStop.set(true);
     }
 
-    private synchronized boolean keepRunning() {
-        return !this.doStop;
+    private boolean keepRunning() {
+        return !this.doStop.get();
     }
 
     private synchronized boolean executeTask(Schedulable task, Map<String, String> params) {
@@ -50,7 +52,7 @@ public class TaskWorker implements Runnable {
                 try {
                     nextTask = taskService.getNextReadyTaskByCategory(category);
                 } catch (Exception e) {
-                    LogService.logger.severe(e.getMessage());
+                    LogService.logger.severe("Table for category: '" + category + "' not found. " + e.getMessage());
                 }
                 if (nextTask != null) {
                     long workerWaitEndTime = System.currentTimeMillis();
@@ -58,7 +60,7 @@ public class TaskWorker implements Runnable {
                     LogService.logger.info(String.format("Worker %s start execute task with id: %s and category '%s'",
                             workerId, nextTask.getId(), category));
                     long executionStart = System.currentTimeMillis();
-                    Schedulable taskClass = (Schedulable) Class.forName(nextTask.getCanonicalName()).getDeclaredConstructor().newInstance();
+                    Schedulable taskClass = nextTask.getSchedulableClass().getDeclaredConstructor().newInstance();
                     if (executeTask(taskClass, nextTask.getParams())) {
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.COMPLETED, category);
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been executed.",
@@ -78,6 +80,4 @@ public class TaskWorker implements Runnable {
             LogService.logger.severe(e.getMessage());
         }
     }
-
-
 }

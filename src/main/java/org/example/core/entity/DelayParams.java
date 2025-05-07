@@ -1,27 +1,34 @@
 package org.example.core.entity;
 
+
+import org.example.core.retry_policy.FixedRetryPolicy;
+import org.example.core.retry_policy.RetryPolicy;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class DelayParams {
 
     private Long taskId;
     private boolean withRetry = false;
-    private int retryCount = 0;
-    private boolean valueIsFixed = true;
+    private int maxRetryCount = 0;
     private Long fixDelayValue = null;
-    private Long delayBase = null;
-    private Long delayLimit = null;
+    private Class<? extends RetryPolicy> retryPolicyClass = FixedRetryPolicy.class;
+    private final Map<String, String> retryParams = new HashMap<>();
 
     public DelayParams(Long taskId) {
         this.taskId = taskId;
     }
 
-    public DelayParams(Long taskId, boolean withRetry, int retryCount, boolean valueIsFixed, Long fixDelayValue, Long delayBase, Long delayLimit) {
+    public DelayParams(Long taskId, boolean withRetry, int maxRetryCount, Long fixDelayValue, Class<? extends RetryPolicy> retryPolicyClass,
+                       Map<String, String> retryParams) {
         this.taskId = taskId;
         this.withRetry = withRetry;
-        this.retryCount = retryCount;
-        this.valueIsFixed = valueIsFixed;
+        this.maxRetryCount = maxRetryCount;
+        this.retryPolicyClass = retryPolicyClass;
         this.fixDelayValue = fixDelayValue;
-        this.delayBase = delayBase;
-        this.delayLimit = delayLimit;
+        this.retryParams.putAll(retryParams);
+        this.retryParams.putIfAbsent("fixDelayValue", fixDelayValue.toString());
     }
 
 
@@ -41,20 +48,12 @@ public class DelayParams {
         this.withRetry = withRetry;
     }
 
-    public int getRetryCount() {
-        return retryCount;
+    public int getMaxRetryCount() {
+        return maxRetryCount;
     }
 
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public boolean isValueIsFixed() {
-        return valueIsFixed;
-    }
-
-    public void setValueIsFixed(boolean valueIsFixed) {
-        this.valueIsFixed = valueIsFixed;
+    public void setMaxRetryCount(int maxRetryCount) {
+        this.maxRetryCount = maxRetryCount;
     }
 
     public Long getFixDelayValue() {
@@ -65,19 +64,31 @@ public class DelayParams {
         this.fixDelayValue = fixDelayValue;
     }
 
-    public Long getDelayBase() {
-        return delayBase;
+    public Class<? extends RetryPolicy> getRetryPolicyClass() {
+        return retryPolicyClass;
     }
 
-    public void setDelayBase(Long delayBase) {
-        this.delayBase = delayBase;
+    public void setRetryPolicyClass(Class<? extends RetryPolicy> retryPolicyClass) {
+        this.retryPolicyClass = retryPolicyClass;
     }
 
-    public Long getDelayLimit() {
-        return delayLimit;
+    public void setRetryPolicyClass(String retryPolicyClassName) {
+        try {
+            setRetryPolicyClass((Class<? extends RetryPolicy>) Class.forName(retryPolicyClassName));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public void setDelayLimit(Long delayLimit) {
-        this.delayLimit = delayLimit;
+    public Map<String, String> getRetryParams() {
+        return retryParams;
+    }
+
+    public void setRetryParams(Map<String, String> retryParams) {
+        this.retryParams.putAll(retryParams);
+    }
+
+    public void addRetryParams(String key, String value) {
+        this.retryParams.putIfAbsent(key, value);
     }
 }
