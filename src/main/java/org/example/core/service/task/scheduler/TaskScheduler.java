@@ -1,6 +1,7 @@
 package org.example.core.service.task.scheduler;
 
-import org.example.core.entity.*;
+import org.example.core.entity.DelayParams;
+import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
 import org.example.core.schedulable.Schedulable;
@@ -10,7 +11,7 @@ import org.example.core.validator.DelayValidator;
 import org.example.holder.ServiceHolder;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Map;
 
 public class TaskScheduler implements TaskSchedulerService {
 
@@ -46,7 +47,7 @@ public class TaskScheduler implements TaskSchedulerService {
         ScheduledTask task = new ScheduledTask();
         String category = scheduleClass.getSimpleName();
         task.setCategory(category);
-        task.setCanonicalName(scheduleClass.getName());
+        task.setSchedulableClass(scheduleClass);
         task.setParams(params);
         task.setExecutionTime(Timestamp.valueOf(executionTime));
         task.setId(taskService.save(task, category));
@@ -56,11 +57,10 @@ public class TaskScheduler implements TaskSchedulerService {
     private void createAndSaveDelayParams(Delay delay, ScheduledTask task) {
         DelayParams delayParams = new DelayParams(task.getId());
         delayParams.setWithRetry(delay.isWithRetry());
-        delayParams.setValueIsFixed(delay.isFixedRetryPolicy());
-        delayParams.setRetryCount(delay.getMaxRetryCount());
-        delayParams.setDelayLimit(delay.getDelayLimit());
+        delayParams.setMaxRetryCount(delay.getMaxRetryCount());
         delayParams.setFixDelayValue(delay.getFixDelayValue());
-        delayParams.setDelayBase(delay.getDelayBase());
+        delayParams.setRetryPolicyClass(delay.getRetryPolicyClass());
+        delayParams.setRetryParams(delay.getRetryParams());
         delayService.save(delayParams, task.getCategory());
     }
 

@@ -1,9 +1,11 @@
 package org.example.core.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.entity.DelayParams;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.Map;
 
 public class JdbcDelayRepository implements DelayRepository {
 
@@ -12,6 +14,9 @@ public class JdbcDelayRepository implements DelayRepository {
     private final String tableName;
 
     private final String taskTableName;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     public JdbcDelayRepository(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -33,11 +38,10 @@ public class JdbcDelayRepository implements DelayRepository {
                 if (result.next()) {
                     DelayParams delayParams = new DelayParams(taskId);
                     delayParams.setWithRetry(result.getBoolean("with_retry"));
-                    delayParams.setRetryCount(result.getInt("retry_count"));
-                    delayParams.setValueIsFixed(result.getBoolean("value_is_fixed"));
+                    delayParams.setMaxRetryCount(result.getInt("max_retry_count"));
                     delayParams.setFixDelayValue(result.getLong("fix_delay_value"));
-                    delayParams.setDelayBase(result.getLong("delay_base"));
-                    delayParams.setDelayLimit(result.getLong("delay_limit"));
+                    delayParams.setRetryPolicyClass(result.getString("retry_policy_canonical_name"));
+                    delayParams.setRetryParams(objectMapper.readValue(result.getString("retry_params"), Map.class));
                     return delayParams;
                 }
             }
@@ -54,19 +58,18 @@ public class JdbcDelayRepository implements DelayRepository {
 
         createTableIfNotExists(category);
 
-        String sql = "INSERT INTO " + tableName + category + " (task_id, with_retry, retry_count, value_is_fixed, fix_delay_value, delay_base, delay_limit)" +
-                " VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO " + tableName + category + " (task_id, with_retry, max_retry_count, fix_delay_value, " +
+                "retry_policy_canonical_name, retry_params) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             stmt.setLong(1, delayParams.getTaskId());
             stmt.setBoolean(2, delayParams.isWithRetry());
-            stmt.setInt(3, delayParams.getRetryCount());
-            stmt.setBoolean(4, delayParams.isValueIsFixed());
-            stmt.setLong(5, delayParams.getFixDelayValue());
-            stmt.setLong(6, delayParams.getDelayBase());
-            stmt.setLong(7, delayParams.getDelayLimit());
+            stmt.setInt(3, delayParams.getMaxRetryCount());
+            stmt.setLong(4, delayParams.getFixDelayValue());
+            stmt.setString(5, delayParams.getRetryPolicyClass().getName());
+            stmt.setString(6, objectMapper.writeValueAsString(delayParams.getRetryParams()));
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -83,11 +86,10 @@ public class JdbcDelayRepository implements DelayRepository {
         String sql = "CREATE TABLE IF NOT EXISTS " + tableName + category + " (\n" +
                 "task_id BIGINT PRIMARY KEY,\n" +
                 "    with_retry BOOL NOT NULL,\n" +
-                "    retry_count INT,\n" +
-                "    value_is_fixed BOOL,\n" +
+                "    max_retry_count INT,\n" +
                 "    fix_delay_value BIGINT,\n" +
-                "    delay_base BIGINT,\n" +
-                "    delay_limit BIGINT,\n" +
+                "    retry_policy_canonical_name VARCHAR(255) NOT NULL,\n" +
+                "    retry_params JSON NOT NULL,\n" +
                 "    FOREIGN KEY (task_id) REFERENCES " + taskTableName + category + " (id) ON DELETE CASCADE);";
 
         try (Connection connection = dataSource.getConnection()) {
