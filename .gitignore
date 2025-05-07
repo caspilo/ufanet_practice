@@ -40,3 +40,4 @@ db
 task_application_log**
 /logs
 grafana/grafana-storage
+!grafana/grafana-storage/dashboards

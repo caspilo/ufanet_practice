@@ -15,20 +15,18 @@ public abstract class TestThreads {
     }
 
     public void initThreads(int threadCount, int boundMillisToSleep) {
-        try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
-            Runnable initRunnable = createInitThread(boundMillisToSleep);
-            for (int i = 0; i < threadCount; i++) {
-                executor.execute(initRunnable);
-            }
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        Runnable initRunnable = createInitThread(boundMillisToSleep);
+        for (int i = 0; i < threadCount; i++) {
+            executor.execute(initRunnable);
         }
     }
 
     public void stoppingThreads(int threadCount, int boundMillisToSleep) {
-        try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
-            Runnable stoppingRunnable = createStoppingThread(boundMillisToSleep);
-            for (int i = 0; i < threadCount; i++) {
-                executor.execute(stoppingRunnable);
-            }
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        Runnable stoppingRunnable = createStoppingThread(boundMillisToSleep);
+        for (int i = 0; i < threadCount; i++) {
+            executor.execute(stoppingRunnable);
         }
     }
 
