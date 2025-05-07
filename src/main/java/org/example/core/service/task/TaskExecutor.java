@@ -3,7 +3,6 @@ package org.example.core.service.task;
 import org.example.core.entity.*;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.metrics.TaskMetrics;
 import org.example.core.retry_policy.RetryParams;
 import org.example.core.retry_policy.RetryPolicy;
 import org.example.core.service.delay.DelayService;
@@ -78,7 +77,6 @@ public class TaskExecutor {
                     LogService.logger.info(String.format("The attempts for retry execute task with id: %s and category: '%s' are over. ",
                             id, category));
                     taskService.changeTaskStatus(id, TaskStatus.FAILED, category);
-                    TaskMetrics.taskFailed(category);
                 }
                 return;
             }
