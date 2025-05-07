@@ -1,18 +1,17 @@
 package org.example.core.monitoring.metrics;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.*;
 
 public class AverageTimeCalculator {
-    private final Map<String, Long> summaryTime = new ConcurrentHashMap<>();
-    private final Map<String, Integer> summaryCount = new ConcurrentHashMap<>();
+    private final AtomicLong summaryTime = new AtomicLong(0);
+    private final AtomicInteger summaryCount = new AtomicInteger(0);
 
-    public void eventHappened(String category, long duration) {
-        summaryCount.merge(category, 1, Integer::sum);
-        summaryTime.merge(category, duration, Long::sum);
+    public void eventHappened(long duration) {
+        summaryTime.addAndGet(duration);
+        summaryCount.incrementAndGet();
     }
 
-    public double calculateAverageTimeByCategory(String category) {
-        return (double) summaryTime.get(category) / summaryCount.get(category);
+    public double calculateAverageTimeByCategory() {
+        return (double) summaryTime.get() / summaryCount.get();
     }
 }

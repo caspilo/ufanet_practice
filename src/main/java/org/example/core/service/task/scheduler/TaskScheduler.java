@@ -4,9 +4,6 @@ import org.example.core.entity.DelayParams;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.MetricRegisterer;
-import org.example.core.monitoring.metrics.MetricType;
-import org.example.core.monitoring.metrics.TaskMetrics;
 import org.example.core.schedulable.Schedulable;
 import org.example.core.service.delay.DelayService;
 import org.example.core.service.task.TaskService;
@@ -14,7 +11,7 @@ import org.example.core.validator.DelayValidator;
 import org.example.holder.ServiceHolder;
 
 import java.sql.Timestamp;
-import java.util.Map;
+import java.util.*;
 
 public class TaskScheduler implements TaskSchedulerService {
 
@@ -22,10 +19,8 @@ public class TaskScheduler implements TaskSchedulerService {
 
     private final DelayService delayService;
 
-    private final MetricRegisterer metricRegisterer;
 
-    public TaskScheduler(MetricRegisterer metricRegisterer) {
-        this.metricRegisterer = metricRegisterer;
+    public TaskScheduler() {
         this.taskService = ServiceHolder.getTaskService();
         this.delayService = ServiceHolder.getDelayService();
     }
@@ -45,11 +40,6 @@ public class TaskScheduler implements TaskSchedulerService {
         } catch (Exception e) {
             LogService.logger.severe("Process schedule task failed. " + e.getMessage());
             return Optional.empty();
-        } finally {
-            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.SCHEDULED_TASK_COUNT);
-            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.FAILED_TASK_COUNT);
-            metricRegisterer.registerMetric(scheduleClass.getSimpleName(), MetricType.TASK_AVERAGE_TIME_EXECUTION);
-            TaskMetrics.taskScheduled(scheduleClass.getSimpleName());
         }
     }
 

@@ -7,8 +7,6 @@
 указать команду: 
 -javaagent:./prometheus/jmx_prometheus_javaagent-0.20.0.jar=8080:./prometheus/config.yaml  
 ## Запуск WorkerAndTaskIntegrationTest::main
-После запуска программа может не подключиться к БД, развёрнутой в образе,
-может помочь обновление соединения с БД во вкладке Database IDE.
 ## Вывод данных в Grafana
 После запуска приложения, нужно перейти по адресу http://localhost:3000  
 Если потребует логин и пароль: admin и admin.  

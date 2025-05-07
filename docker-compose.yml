@@ -26,11 +26,12 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - ./grafana/grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./grafana/provisioning/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    depends_on:
+      - prometheus
 
 volumes:
   grafana-storage: {}

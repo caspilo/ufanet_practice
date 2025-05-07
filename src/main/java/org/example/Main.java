@@ -2,8 +2,7 @@ package org.example;
 
 import com.zaxxer.hikari.*;
 import org.example.config.DataSourceConfig;
-import org.example.core.monitoring.*;
-import org.example.core.monitoring.metrics.*;
+import org.example.core.monitoring.MetricRegisterer;
 import org.example.core.schedulable.*;
 import org.example.core.service.task.scheduler.*;
 import org.example.holder.RepositoryHolder;
@@ -12,7 +11,7 @@ import org.example.worker.TaskWorkerPool;
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Map;
 
 public class Main {
 
@@ -26,9 +25,8 @@ public class Main {
         DataSource dataSource = new HikariDataSource(config);
 
         RepositoryHolder.init(dataSource); // инициализация DataSource, репозиториев, сервисов
-        Map<MetricType, MetricHandler> metricHandlers = createAndSetupMetricHandlers();
-        MetricRegisterer metricRegisterer = new MetricRegisterer(metricHandlers);
-        TaskSchedulerService taskScheduler = new TaskScheduler(metricRegisterer);
+        MetricRegisterer metricRegisterer = new MetricRegisterer();
+        TaskSchedulerService taskScheduler = new TaskScheduler();
         TaskWorkerPool pool = new TaskWorkerPool(metricRegisterer);
 
         Map<String, String> params = Map.of(
@@ -41,15 +39,5 @@ public class Main {
 
         pool.initWorkers(Map.of(PushNotification.class, 2));
         pool.initWorkers(Map.of(DoSomething.class, 1));
-    }
-
-    private static Map<MetricType, MetricHandler> createAndSetupMetricHandlers() {
-        Map<MetricType, MetricHandler> metricHandlers = new HashMap<>();
-        metricHandlers.put(MetricType.FAILED_TASK_COUNT, TaskMetrics::getFailedTaskCountByCategory);
-        metricHandlers.put(MetricType.TASK_AVERAGE_TIME_EXECUTION, TaskMetrics::getTaskAverageExecutionTimeByCategory);
-        metricHandlers.put(MetricType.SCHEDULED_TASK_COUNT, TaskMetrics::getScheduledTaskCountByCategory);
-        metricHandlers.put(MetricType.WORKER_COUNT, WorkerMetrics::getWorkerCountByCategory);
-        metricHandlers.put(MetricType.WORKER_AVERAGE_TIME_EXECUTION, WorkerMetrics::getWorkerAverageWaitTimeByCategory);
-        return metricHandlers;
     }
 }
