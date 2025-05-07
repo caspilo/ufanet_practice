@@ -1,7 +1,8 @@
 package org.example.core.entity;
 
-import org.example.retry_policy.FixedRetryPolicy;
-import org.example.retry_policy.RetryPolicy;
+
+import org.example.core.retry_policy.FixedRetryPolicy;
+import org.example.core.retry_policy.RetryPolicy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +11,7 @@ public class DelayParams {
 
     private Long taskId;
     private boolean withRetry = false;
-    private int retryCount = 0;
+    private int maxRetryCount = 0;
     private Long fixDelayValue = null;
     private Class<? extends RetryPolicy> retryPolicyClass = FixedRetryPolicy.class;
     private final Map<String, String> retryParams = new HashMap<>();
@@ -19,11 +20,11 @@ public class DelayParams {
         this.taskId = taskId;
     }
 
-    public DelayParams(Long taskId, boolean withRetry, int retryCount, Long fixDelayValue, Class<? extends RetryPolicy> retryPolicyClass,
+    public DelayParams(Long taskId, boolean withRetry, int maxRetryCount, Long fixDelayValue, Class<? extends RetryPolicy> retryPolicyClass,
                        Map<String, String> retryParams) {
         this.taskId = taskId;
         this.withRetry = withRetry;
-        this.retryCount = retryCount;
+        this.maxRetryCount = maxRetryCount;
         this.retryPolicyClass = retryPolicyClass;
         this.fixDelayValue = fixDelayValue;
         this.retryParams.putAll(retryParams);
@@ -47,12 +48,12 @@ public class DelayParams {
         this.withRetry = withRetry;
     }
 
-    public int getRetryCount() {
-        return retryCount;
+    public int getMaxRetryCount() {
+        return maxRetryCount;
     }
 
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
+    public void setMaxRetryCount(int maxRetryCount) {
+        this.maxRetryCount = maxRetryCount;
     }
 
     public Long getFixDelayValue() {
@@ -69,6 +70,14 @@ public class DelayParams {
 
     public void setRetryPolicyClass(Class<? extends RetryPolicy> retryPolicyClass) {
         this.retryPolicyClass = retryPolicyClass;
+    }
+
+    public void setRetryPolicyClass(String retryPolicyClassName) {
+        try {
+            setRetryPolicyClass((Class<? extends RetryPolicy>) Class.forName(retryPolicyClassName));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Map<String, String> getRetryParams() {

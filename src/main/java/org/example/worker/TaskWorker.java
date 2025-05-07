@@ -14,7 +14,6 @@ import org.example.holder.ServiceHolder;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.*;
 
 public class TaskWorker implements Runnable {
     private final String category;
@@ -23,7 +22,7 @@ public class TaskWorker implements Runnable {
     private final TaskService taskService;
     private final TaskExecutor taskExecutor;
 
-    private AtomicBoolean doStop = new AtomicBoolean(false);
+    private final AtomicBoolean doStop = new AtomicBoolean(false);
 
     public TaskWorker(String category, UUID workerId) {
         this.workerId = workerId;

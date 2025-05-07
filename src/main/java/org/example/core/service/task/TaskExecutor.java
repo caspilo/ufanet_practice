@@ -27,24 +27,27 @@ public class TaskExecutor {
         this.delayService = delayService;
     }
 
-    private RetryParams getRetryParamsForIdOrCreate(Long id, Map<String, String> params) {
+    private RetryParams getRetryParamsForIdOrCreate(Long id, Map<String, String> params, int currentAttempt) {
         String key = isTaskRescheduled.get(id) + id;
         if (retryParamsMap.containsKey(key)) {
-            return retryParamsMap.get(key);
+            RetryParams existingRetryParams = retryParamsMap.get(key);
+            existingRetryParams.setCurrentAttempt(currentAttempt);
+            return existingRetryParams;
         } else {
             RetryParams retryParams = new RetryParams(params);
+            retryParams.setCurrentAttempt(currentAttempt);
             retryParamsMap.put(key, retryParams);
             return retryParams;
         }
     }
 
-    private void applyRetryPolicy(Long id, DelayParams delayParams, String category) {
+    private void applyRetryPolicy(Long id, DelayParams delayParams, String category, int currentAttempt) {
         RetryPolicy retryPolicyClass;
         try {
             retryPolicyClass = delayParams.getRetryPolicyClass().newInstance();
             LogService.logger.info(String.format("Retry execute task with id: %s and category: '%s' using retry policy: '%s'",
                     id, category, retryPolicyClass.getClass().getName()));
-            long delayValue = retryPolicyClass.calculate(getRetryParamsForIdOrCreate(id, delayParams.getRetryParams()));
+            long delayValue = retryPolicyClass.calculate(getRetryParamsForIdOrCreate(id, delayParams.getRetryParams(), currentAttempt));
             if (delayValue >= 0) {
                 taskService.rescheduleTask(id, delayValue, category);
             } else {
@@ -62,13 +65,11 @@ public class TaskExecutor {
                 id, category));
         DelayParams delayParams = delayService.getDelayParams(id, category);
         if (delayParams.isWithRetry()) {
-//            ScheduledTask task = taskService.getTask(id, category);
-//            int retryCount = task.getRetryCount();
             int maxRetryCount = delayParams.getMaxRetryCount();
             if (isTaskRescheduled.containsKey(id) && isTaskRescheduled.containsValue(category)) {
 
                 if (retryCount < maxRetryCount - 1) {
-                    applyRetryPolicy(id, delayParams, category);
+                    applyRetryPolicy(id, delayParams, category, retryCount);
                     taskService.increaseRetryCountForTask(id, category);
                     LogService.logger.info(String.format("Retrying execute task with id: %s and category: '%s' started. Current attempt = %s",
                             id, category, retryCount + 2));
@@ -82,7 +83,7 @@ public class TaskExecutor {
                 return;
             }
             isTaskRescheduled.put(id, category);
-            applyRetryPolicy(id, delayParams, category);
+            applyRetryPolicy(id, delayParams, category, retryCount);
             LogService.logger.info(String.format("Retrying execute task with id: %s and category: '%s' started. Current attempt = %s",
                     id, category, retryCount + 1));
             return;

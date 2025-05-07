@@ -22,7 +22,11 @@ public class RetryParams {
         return Long.valueOf(params.get("delayLimit"));
     }
 
-    public Integer getAttemptCount() {
-        return Integer.valueOf(params.get("attemptCount"));
+    public Integer getCurrentAttempt() {
+        return Integer.valueOf(params.get("currentAttempt"));
+    }
+
+    public void setCurrentAttempt(int attempt) {
+        params.put("currentAttempt", String.valueOf(attempt));
     }
 }
