@@ -44,6 +44,15 @@ public class Delay {
         return retryParams;
     }
 
+    @Override
+    public String toString() {
+        return "Delay{" +
+                "withRetry=" + withRetry +
+                ", fixDelayValue=" + fixDelayValue +
+                ", maxRetryCount=" + maxRetryCount +
+                '}';
+    }
+
     public static class DelayBuilder {
         private boolean withRetry = false;
         private Long fixDelayValue = 10000L;

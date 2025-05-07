@@ -3,13 +3,10 @@ package org.example.worker;
 import org.example.core.entity.ScheduledTask;
 import org.example.core.entity.enums.TaskStatus;
 import org.example.core.logging.LogService;
-import org.example.core.monitoring.metrics.TaskMetrics;
-import org.example.core.monitoring.metrics.WorkerMetrics;
+import org.example.core.monitoring.metrics.*;
 import org.example.core.schedulable.Schedulable;
-import org.example.core.service.task.TaskExecutor;
-import org.example.core.service.task.TaskService;
-import org.example.holder.ExecutorHolder;
-import org.example.holder.ServiceHolder;
+import org.example.core.service.task.*;
+import org.example.holder.*;
 
 import java.util.Map;
 import java.util.UUID;
@@ -55,7 +52,7 @@ public class TaskWorker implements Runnable {
                 try {
                     nextTask = taskService.getNextReadyTaskByCategory(category);
                 } catch (Exception e) {
-                    LogService.logger.severe(e.getMessage());
+                    LogService.logger.severe("Table for category: '" + category + "' not found. " + e.getMessage());
                 }
                 if (nextTask != null) {
                     long workerWaitEndTime = System.currentTimeMillis();
