@@ -54,13 +54,13 @@ public class DatabaseTaskActions implements TaskService {
     }
 
     @Override
-    public List<ScheduledTask> getAndLockReadyTasksByCategory(String category) {
-        return taskRepository.getAndLockReadyTasksByCategory(category);
+    public List<ScheduledTask> getReadyTasksByCategory(String category) {
+        return taskRepository.getReadyTasksByCategory(category);
     }
 
     @Override
-    public ScheduledTask getAndLockNextTaskByCategory(String category) {
-        return taskRepository.getAndLockNextTaskByCategory(category);
+    public ScheduledTask getNextReadyTaskByCategory(String category) {
+        return taskRepository.getNextReadyTaskByCategory(category);
     }
 
     @Override

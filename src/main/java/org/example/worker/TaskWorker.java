@@ -64,9 +64,9 @@ public class TaskWorker implements Runnable {
                         workerId, category));
                 ScheduledTask nextTask = null;
                 try {
-                    nextTask = taskService.getAndLockNextTaskByCategory(category);
+                    nextTask = taskService.getNextReadyTaskByCategory(category);
                 } catch (Exception e) {
-                    LogService.logger.severe("Table for category: '" + category + "' not found. " + e.getMessage());
+                    LogService.logger.severe(e.getMessage());
                 }
                 if (nextTask != null) {
                     long workerWaitEndTime = System.currentTimeMillis();
@@ -88,7 +88,7 @@ public class TaskWorker implements Runnable {
                         LogService.logger.info(String.format("Task with id: %s and category: '%s' has been failed.",
                                 nextTask.getId(), category));
                         taskService.changeTaskStatus(nextTask.getId(), TaskStatus.RETRYING, category);
-                        taskExecutor.executeRetryPolicyForTask(nextTask.getId(), category);
+                        taskExecutor.executeRetryPolicyForTask(nextTask.getId(), nextTask.getCategory(), nextTask.getRetryCount());
                     }
                 }
             }

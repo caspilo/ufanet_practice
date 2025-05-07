@@ -66,7 +66,7 @@ public class TaskWorkerPool {
         }
     }
 
-    public void stopWorker(String category, UUID workerId) {
+    public void shutdownWorker(String category, UUID workerId) {
         try {
             TaskWorker worker = taskWorkerMap.get(Collections.singletonMap(category, workerId));
             if (worker != null) {
@@ -78,6 +78,14 @@ public class TaskWorkerPool {
             }
         } catch (Exception e) {
             LogService.logger.severe(String.format("Failed to stop worker with id: %s and category: '%s'. ", workerId, category) + e.getMessage());
+        }
+    }
+
+    public void shutdownAllWorkers() {
+        for (Map.Entry<String, List<UUID>> entry : categoriesAndIdWorkers.entrySet()) {
+            for (UUID workerId : entry.getValue()) {
+                shutdownWorker(entry.getKey(), workerId);
+            }
         }
     }
 

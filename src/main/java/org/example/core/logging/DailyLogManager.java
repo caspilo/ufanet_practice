@@ -14,6 +14,7 @@ public class DailyLogManager {
     private static String currentDate;
 
     public static void setupLogger() throws IOException {
+        LogService.logger.setUseParentHandlers(false);
         updateLogger();
         startDateCheckThread();
     }
@@ -34,7 +35,6 @@ public class DailyLogManager {
         currentFileHandler = new FileHandler(fileName, 1024 * 1024, 5, true);
         currentFileHandler.setFormatter(new SimpleFormatter());
         LogService.logger.addHandler(currentFileHandler);
-        LogService.logger.setUseParentHandlers(false);
 
         currentDate = today;
         LogService.logger.info("Logger switched to file: " + fileName);

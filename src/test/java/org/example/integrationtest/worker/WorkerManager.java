@@ -48,7 +48,7 @@ public class WorkerManager {
         if (workersIdOptional.isPresent()) {
             List<UUID> workersId = workersIdOptional.get();
             UUID randomWorkerId = workersId.get(RANDOM.nextInt(workersId.size()));
-            workerPool.stopWorker(randomCategory, randomWorkerId);
+            workerPool.shutdownWorker(randomCategory, randomWorkerId);
             printStoppedWorkerInfo(randomCategory);
         }
     }
