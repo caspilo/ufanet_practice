@@ -3,6 +3,7 @@ package org.example.core.service.task.scheduler;
 import org.example.core.retry_policy.FixedRetryPolicy;
 import org.example.core.retry_policy.RetryPolicy;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Delay {
@@ -58,7 +59,7 @@ public class Delay {
         private Long fixDelayValue = 10000L;
         private int maxRetryCount = 0;
         private Class<? extends RetryPolicy> retryPolicyClass = FixedRetryPolicy.class;
-        private final Map<String, String> retryParams = Map.of("fixDelayValue", fixDelayValue.toString());
+        private final Map<String, String> retryParams = new HashMap<>();
 
         public DelayBuilder setWithRetry(boolean withRetry) {
             this.withRetry = withRetry;
@@ -87,6 +88,7 @@ public class Delay {
         }
 
         public Delay build() {
+            retryParams.put("fixDelayValue", fixDelayValue.toString());
             return new Delay(
                     withRetry,
                     fixDelayValue, maxRetryCount, retryPolicyClass, retryParams);
