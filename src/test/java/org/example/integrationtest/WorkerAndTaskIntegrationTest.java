@@ -12,10 +12,10 @@ import javax.sql.DataSource;
 import java.util.*;
 
 public class WorkerAndTaskIntegrationTest {
-    private static final int MAX_WORKER_THREADS = 2;
+    private static final int MAX_WORKER_THREADS = 3;
     private static final int MIN_WORKER_THREADS = 1;
-    private static final int WORKER_THREAD_COUNT = 1;
-    private static final int TASK_THREAD_COUNT = 1;
+    private static final int WORKER_THREAD_COUNT = 3;
+    private static final int TASK_THREAD_COUNT = 3;
     private static final int BOUND_MILLIS_TO_SLEEP = 10000;
 
     public static void main(String[] args) {

@@ -1,6 +1,7 @@
 package org.example.integrationtest;
 
 import java.util.Random;
+import java.util.concurrent.*;
 
 public abstract class TestThreads {
     protected static final Random RANDOM = new Random();
@@ -13,22 +14,22 @@ public abstract class TestThreads {
         }
     }
 
-    public Thread[] initThreads(int threadCount, int boundMillisToSleep) {
-        Thread[] threads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            threads[i] = createInitThreads(boundMillisToSleep);
-            threads[i].start();
+    public void initThreads(int threadCount, int boundMillisToSleep) {
+        try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+            Runnable initRunnable = createInitThread(boundMillisToSleep);
+            for (int i = 0; i < threadCount; i++) {
+                executor.execute(initRunnable);
+            }
         }
-        return threads;
     }
 
-    public Thread[] stoppingThreads(int threadCount, int boundMillisToSleep) {
-        Thread[] threads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            threads[i] = createStoppingThread(boundMillisToSleep);
-            threads[i].start();
+    public void stoppingThreads(int threadCount, int boundMillisToSleep) {
+        try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+            Runnable stoppingRunnable = createStoppingThread(boundMillisToSleep);
+            for (int i = 0; i < threadCount; i++) {
+                executor.execute(stoppingRunnable);
+            }
         }
-        return threads;
     }
 
     protected void setupThreadName(Thread thread, String threadName) {
@@ -37,7 +38,7 @@ public abstract class TestThreads {
         thread.setName(threadFullName);
     }
 
-    protected abstract Thread createInitThreads(int boundMillisToSleep);
+    protected abstract Runnable createInitThread(int boundMillisToSleep);
 
-    protected abstract Thread createStoppingThread(int boundMillisToSleep);
+    protected abstract Runnable createStoppingThread(int boundMillisToSleep);
 }

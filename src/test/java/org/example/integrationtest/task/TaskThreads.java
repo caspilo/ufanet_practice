@@ -10,26 +10,24 @@ public class TaskThreads extends TestThreads {
     }
 
     @Override
-    protected Thread createInitThreads(int boundMillisToSleep) {
-        Thread thread = new Thread(() -> {
+    protected Runnable createInitThread(int boundMillisToSleep) {
+        return () -> {
+            setupThreadName(Thread.currentThread(), "Task initializer");
             while (true) {
                 taskManager.initRandomTask();
                 sleep(boundMillisToSleep);
             }
-        });
-        setupThreadName(thread, "Task initializer");
-        return thread;
+        };
     }
 
     @Override
-    protected Thread createStoppingThread(int boundMillisToSleep) {
-        Thread thread = new Thread(() -> {
+    protected Runnable createStoppingThread(int boundMillisToSleep) {
+        return () -> {
+            setupThreadName(Thread.currentThread(), "Task stopper");
             while (true) {
                 taskManager.stopRandomTask();
                 sleep(boundMillisToSleep);
             }
-        });
-        setupThreadName(thread, "Task stopper");
-        return thread;
+        };
     }
 }
